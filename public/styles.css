@@ -993,41 +993,14 @@ select:focus {
 .learn-stack {
   width: min(100%, 1040px);
   display: grid;
-  gap: 18px;
-}
-
-.learn-toolbar {
-  min-height: 76px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  padding: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.learn-toolbar h2 {
-  margin: 0;
-  color: var(--ink);
-  font-size: 19px;
-  line-height: 1.25;
-  letter-spacing: 0;
-}
-
-.learn-toolbar p {
-  margin: 7px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.5;
+  gap: 14px;
 }
 
 .learn-actions {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
-  flex: 0 0 auto;
 }
 
 .learn-grid {
@@ -1092,9 +1065,7 @@ select:focus {
 
 .learn-card-body {
   padding: 15px;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 9px;
+  display: block;
 }
 
 .learn-card-title {
@@ -1107,45 +1078,11 @@ select:focus {
 }
 
 .learn-card-desc {
+  margin-top: 10px;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.55;
   overflow-wrap: anywhere;
-}
-
-.learn-card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 28px;
-}
-
-.learn-cache-badge {
-  min-height: 24px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #64748b;
-  padding: 4px 9px;
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1.3;
-  white-space: nowrap;
-}
-
-.learn-cache-badge.is-cached {
-  background: #ecfdf5;
-  color: #047857;
-}
-
-.learn-date {
-  min-width: 0;
-  color: #98a2b3;
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .learn-empty {
@@ -1182,14 +1119,6 @@ select:focus {
   font-size: 18px;
   line-height: 1.3;
   letter-spacing: 0;
-}
-
-.learn-reader-head p {
-  margin: 5px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 800;
-  line-height: 1.4;
 }
 
 .learn-reader-frame {
@@ -1441,7 +1370,6 @@ select:focus {
   }
 
   .form-tools,
-  .learn-toolbar,
   .panel-head,
   .token-row {
     align-items: flex-start;
@@ -1492,9 +1420,7 @@ select:focus {
   }
 
   .learn-actions {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: flex-end;
   }
 
   .learn-grid {

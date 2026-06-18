@@ -16,9 +16,7 @@ const learnEmpty = document.querySelector("#learnEmpty");
 const learnListView = document.querySelector("#learnListView");
 const learnReaderView = document.querySelector("#learnReaderView");
 const learnReaderTitle = document.querySelector("#learnReaderTitle");
-const learnReaderMeta = document.querySelector("#learnReaderMeta");
 const backToLearnListBtn = document.querySelector("#backToLearnListBtn");
-const learnStatusText = document.querySelector("#learnStatusText");
 const learnSourceBtn = document.querySelector("#learnSourceBtn");
 const learnRefreshBtn = document.querySelector("#learnRefreshBtn");
 const learnSourceDialog = document.querySelector("#learnSourceDialog");
@@ -484,10 +482,6 @@ function renderStoredPassword() {
   minePassword.textContent = passwordVisibleToggle?.checked && password ? password : "••••••••";
 }
 
-function setLearnStatus(message) {
-  if (learnStatusText) learnStatusText.textContent = message || "";
-}
-
 function learnCoverMarkup(card) {
   if (card.coverDisplay) {
     return `<img src="${card.coverDisplay}" alt="">`;
@@ -511,19 +505,10 @@ function renderLearnCards(cards = []) {
       <div class="learn-card-body">
         <div class="learn-card-title"></div>
         <div class="learn-card-desc"></div>
-        <div class="learn-card-foot">
-          <span class="learn-cache-badge"></span>
-          <span class="learn-date"></span>
-        </div>
       </div>
     `;
     button.querySelector(".learn-card-title").textContent = card.title || "未命名文章";
     button.querySelector(".learn-card-desc").textContent = card.desc || "点击阅读文章";
-    button.querySelector(".learn-cache-badge").textContent = card.hasCachedArticle
-      ? (card.isArticleCurrent ? "已离线" : "可更新")
-      : "未缓存";
-    button.querySelector(".learn-cache-badge").classList.toggle("is-cached", Boolean(card.hasCachedArticle));
-    button.querySelector(".learn-date").textContent = card.updatedAt || "";
     button.addEventListener("click", () => openLearnArticle(card, button).catch(error => {
       showToast(error.message, "error");
       button.disabled = false;
@@ -544,22 +529,15 @@ async function loadLearnSource() {
 async function loadLearnCatalog({ refresh = false } = {}) {
   if (!learnGrid) return;
   if (learnRefreshBtn) learnRefreshBtn.disabled = true;
-  setLearnStatus(refresh ? "正在刷新文章列表..." : "正在读取文章列表...");
   try {
     const data = await api(`/api/learn/catalog${refresh ? "?refresh=1" : ""}`);
     const catalog = data.catalog || {};
     renderLearnCards(catalog.cards || []);
     learnLoaded = true;
-    if (data.message) {
-      setLearnStatus(data.message);
-    } else if (data.usingSample) {
-      setLearnStatus("当前使用本地示例。设置 Gitee cards.json 后会读取你的文章。");
-    } else {
-      setLearnStatus(data.refreshed ? "文章列表已更新并保存到本地。" : "已读取本地缓存的文章列表。");
-    }
+    if (data.message) showToast(data.message, "error");
   } catch (error) {
     renderLearnCards([]);
-    setLearnStatus(`文章列表读取失败：${error.message}`);
+    showToast(`文章列表读取失败：${error.message}`, "error");
   } finally {
     if (learnRefreshBtn) learnRefreshBtn.disabled = false;
   }
@@ -585,12 +563,11 @@ function closeLearnSourceDialog() {
   learnSourceBtn?.focus();
 }
 
-function openLearnReader(card, articleUrl, metaText) {
+function openLearnReader(card, articleUrl) {
   if (!learnReaderView || !articleFrame) return;
   if (learnListView) learnListView.hidden = true;
   learnReaderView.hidden = false;
   if (learnReaderTitle) learnReaderTitle.textContent = card.title || "文章";
-  if (learnReaderMeta) learnReaderMeta.textContent = metaText || "本地缓存";
   articleFrame.src = articleUrl;
 }
 
@@ -606,7 +583,6 @@ async function openLearnArticle(card, triggerButton) {
     triggerButton.disabled = true;
     triggerButton.classList.add("is-loading");
   }
-  setLearnStatus(card.hasCachedArticle && card.isArticleCurrent ? "正在打开本地文章..." : "正在缓存文章 HTML...");
   try {
     const data = await api(`/api/learn/article-cache/${encodeURIComponent(card.id)}`, { method: "POST" });
     const articleUrl = `${data.articleUrl}?t=${Date.now()}`;
@@ -619,8 +595,8 @@ async function openLearnArticle(card, triggerButton) {
         }
       : item);
     renderLearnCards(nextCards);
-    openLearnReader(card, articleUrl, data.stale ? "已打开本地旧缓存" : "已缓存到本地");
-    setLearnStatus(data.stale ? "联网更新失败，已打开本地旧缓存。" : "文章已保存到本地，可离线阅读。");
+    openLearnReader(card, articleUrl);
+    if (data.stale) showToast("联网更新失败，已打开本地旧缓存。", "error");
   } finally {
     if (triggerButton) {
       triggerButton.disabled = false;
