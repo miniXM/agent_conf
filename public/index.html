@@ -209,7 +209,7 @@
           </div>
         </section>
         <section class="view" id="view-learn">
-          <div class="learn-stack">
+          <div class="learn-stack" id="learnListView">
             <div class="learn-toolbar">
               <div>
                 <h2>学习</h2>
@@ -222,6 +222,16 @@
             </div>
             <div class="learn-grid" id="learnGrid"></div>
             <p class="empty-state learn-empty" id="learnEmpty">暂无文章</p>
+          </div>
+          <div class="learn-reader" id="learnReaderView" hidden>
+            <div class="learn-reader-head">
+              <button class="small-button" id="backToLearnListBtn" type="button">返回列表</button>
+              <div>
+                <h2 id="learnReaderTitle">文章</h2>
+                <p id="learnReaderMeta">本地缓存</p>
+              </div>
+            </div>
+            <iframe class="learn-reader-frame" id="articleFrame" title="学习文章" sandbox></iframe>
           </div>
         </section>
         <section class="view" id="view-mine">
@@ -387,24 +397,6 @@
             <button class="submit-button" type="submit">保存并刷新</button>
           </div>
         </form>
-      </section>
-    </div>
-
-    <div class="article-backdrop" id="articleDialog" hidden>
-      <section class="article-dialog" role="dialog" aria-modal="true" aria-labelledby="articleDialogTitle">
-        <div class="article-dialog-head">
-          <div>
-            <h2 id="articleDialogTitle">文章</h2>
-            <p id="articleDialogMeta">本地缓存</p>
-          </div>
-          <button class="icon-button dialog-close-button" id="closeArticleBtn" type="button" aria-label="关闭文章" title="关闭">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 6l12 12"></path>
-              <path d="M18 6l-12 12"></path>
-            </svg>
-          </button>
-        </div>
-        <iframe class="article-frame" id="articleFrame" title="学习文章" sandbox></iframe>
       </section>
     </div>
 

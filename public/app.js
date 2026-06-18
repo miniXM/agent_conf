@@ -13,6 +13,11 @@ const languageButtons = document.querySelectorAll(".language-toggle button");
 const views = document.querySelectorAll(".view");
 const learnGrid = document.querySelector("#learnGrid");
 const learnEmpty = document.querySelector("#learnEmpty");
+const learnListView = document.querySelector("#learnListView");
+const learnReaderView = document.querySelector("#learnReaderView");
+const learnReaderTitle = document.querySelector("#learnReaderTitle");
+const learnReaderMeta = document.querySelector("#learnReaderMeta");
+const backToLearnListBtn = document.querySelector("#backToLearnListBtn");
 const learnStatusText = document.querySelector("#learnStatusText");
 const learnSourceBtn = document.querySelector("#learnSourceBtn");
 const learnRefreshBtn = document.querySelector("#learnRefreshBtn");
@@ -21,11 +26,7 @@ const learnSourceForm = document.querySelector("#learnSourceForm");
 const learnCatalogUrl = document.querySelector("#learnCatalogUrl");
 const closeLearnSourceBtn = document.querySelector("#closeLearnSourceBtn");
 const useSampleLearnBtn = document.querySelector("#useSampleLearnBtn");
-const articleDialog = document.querySelector("#articleDialog");
-const articleDialogTitle = document.querySelector("#articleDialogTitle");
-const articleDialogMeta = document.querySelector("#articleDialogMeta");
 const articleFrame = document.querySelector("#articleFrame");
-const closeArticleBtn = document.querySelector("#closeArticleBtn");
 const apiUrlInput = document.querySelector("#apiUrl");
 const apiKeyInput = document.querySelector("#apiKey");
 const apiUrlDisplay = document.querySelector("#apiUrlDisplay");
@@ -584,17 +585,19 @@ function closeLearnSourceDialog() {
   learnSourceBtn?.focus();
 }
 
-function openArticleDialog(card, articleUrl, metaText) {
-  if (!articleDialog || !articleFrame) return;
-  articleDialogTitle.textContent = card.title || "文章";
-  articleDialogMeta.textContent = metaText || "本地缓存";
+function openLearnReader(card, articleUrl, metaText) {
+  if (!learnReaderView || !articleFrame) return;
+  if (learnListView) learnListView.hidden = true;
+  learnReaderView.hidden = false;
+  if (learnReaderTitle) learnReaderTitle.textContent = card.title || "文章";
+  if (learnReaderMeta) learnReaderMeta.textContent = metaText || "本地缓存";
   articleFrame.src = articleUrl;
-  articleDialog.hidden = false;
 }
 
-function closeArticleDialog() {
+function closeLearnReader() {
   if (articleFrame) articleFrame.src = "about:blank";
-  if (articleDialog) articleDialog.hidden = true;
+  if (learnReaderView) learnReaderView.hidden = true;
+  if (learnListView) learnListView.hidden = false;
 }
 
 async function openLearnArticle(card, triggerButton) {
@@ -616,7 +619,7 @@ async function openLearnArticle(card, triggerButton) {
         }
       : item);
     renderLearnCards(nextCards);
-    openArticleDialog(card, articleUrl, data.stale ? "已打开本地旧缓存" : "已缓存到本地");
+    openLearnReader(card, articleUrl, data.stale ? "已打开本地旧缓存" : "已缓存到本地");
     setLearnStatus(data.stale ? "联网更新失败，已打开本地旧缓存。" : "文章已保存到本地，可离线阅读。");
   } finally {
     if (triggerButton) {
@@ -1273,14 +1276,8 @@ learnSourceDialog?.addEventListener("click", event => {
   }
 });
 
-closeArticleBtn?.addEventListener("click", () => {
-  closeArticleDialog();
-});
-
-articleDialog?.addEventListener("click", event => {
-  if (event.target === articleDialog) {
-    closeArticleDialog();
-  }
+backToLearnListBtn?.addEventListener("click", () => {
+  closeLearnReader();
 });
 
 toolSettingsDialog?.addEventListener("click", event => {
@@ -1296,8 +1293,8 @@ document.addEventListener("keydown", event => {
   if (event.key === "Escape" && learnSourceDialog && !learnSourceDialog.hidden) {
     closeLearnSourceDialog();
   }
-  if (event.key === "Escape" && articleDialog && !articleDialog.hidden) {
-    closeArticleDialog();
+  if (event.key === "Escape" && learnReaderView && !learnReaderView.hidden) {
+    closeLearnReader();
   }
 });
 
