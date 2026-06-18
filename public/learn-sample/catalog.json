@@ -1,0 +1,23 @@
+{
+  "version": "2026-06-18-001",
+  "cards": [
+    {
+      "id": "sample-notes",
+      "title": "学习模块示例文章",
+      "desc": "这是一个单 HTML 文章示例，点击后会缓存到本地并离线打开。",
+      "cover": "/learn-sample/covers/sample-notes.svg",
+      "html": "/learn-sample/articles/sample-notes.html",
+      "htmlVersion": "1",
+      "updatedAt": "2026-06-18"
+    },
+    {
+      "id": "sample-layout",
+      "title": "第二篇样式文章",
+      "desc": "文章不多时，每篇都可以保留自己的页面风格，不需要统一模板。",
+      "cover": "/learn-sample/covers/sample-layout.svg",
+      "html": "/learn-sample/articles/sample-layout.html",
+      "htmlVersion": "1",
+      "updatedAt": "2026-06-18"
+    }
+  ]
+}

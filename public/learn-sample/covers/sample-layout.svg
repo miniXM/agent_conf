@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" role="img" aria-label="第二篇样式文章">
+  <rect width="960" height="560" fill="#fff7ed"/>
+  <rect x="76" y="74" width="808" height="412" rx="24" fill="#ffffff" stroke="#f3d5b5" stroke-width="3"/>
+  <rect x="124" y="126" width="714" height="170" rx="18" fill="#1f2937"/>
+  <rect x="156" y="160" width="278" height="28" rx="14" fill="#f59e0b"/>
+  <rect x="156" y="214" width="390" height="18" rx="9" fill="#4b5563"/>
+  <rect x="124" y="336" width="328" height="100" rx="18" fill="#fffaf2" stroke="#f3d5b5" stroke-width="2"/>
+  <rect x="482" y="336" width="356" height="100" rx="18" fill="#f8fafc" stroke="#d8e0ea" stroke-width="2"/>
+  <rect x="156" y="366" width="178" height="18" rx="9" fill="#f59e0b" opacity="0.4"/>
+  <rect x="514" y="366" width="196" height="18" rx="9" fill="#94a3b8" opacity="0.55"/>
+</svg>

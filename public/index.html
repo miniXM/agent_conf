@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>agent_conf</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body class="is-login">
+    <main class="login-page" id="loginPage">
+      <section class="login-card" aria-labelledby="loginTitle">
+        <div class="brand">
+          <img class="brand-mark" src="/assets/app-logo.png" alt="agent_conf">
+          <div>
+            <h1 id="loginTitle">欢迎回来</h1>
+            <p>登录后继续管理 agent_conf</p>
+          </div>
+        </div>
+
+        <form id="loginForm">
+          <label>
+            <span>账号</span>
+            <input id="loginUsername" name="username" type="text" autocomplete="username" placeholder="请输入手机号或邮箱">
+          </label>
+
+          <label>
+            <span>密码</span>
+            <input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="请输入登录密码">
+          </label>
+
+          <div class="form-tools">
+            <label class="remember">
+              <input id="rememberCredential" type="checkbox" checked>
+              保存本地账号
+            </label>
+            <button class="link-button" id="reloadStoredBtn" type="button">恢复本地账号</button>
+          </div>
+
+          <p class="form-message" id="loginMessage" role="status"></p>
+
+          <button class="submit-button" type="submit">登录</button>
+
+          <div class="divider">或</div>
+
+          <button class="secondary-button" id="registerBtn" type="button">注册新账号</button>
+        </form>
+
+        <p class="footnote" id="storedAccountText">本机未发现已保存账号</p>
+      </section>
+    </main>
+
+    <div class="shell" id="dashboardPage" hidden>
+      <aside class="sidebar">
+        <nav class="nav" aria-label="主导航">
+          <button class="nav-button is-active" type="button" data-view="config" data-cn="配置" data-en="Config">配置</button>
+          <button class="nav-button" type="button" data-view="learn" data-cn="学习" data-en="Learn">学习</button>
+          <button class="nav-button" type="button" data-view="mine" data-cn="我的" data-en="Mine">我的</button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="logo" aria-label="agent_conf">
+            <img class="logo-mark" src="/assets/app-logo.png" alt="agent_conf">
+            <span>agent_conf</span>
+          </div>
+          <div class="language-toggle" aria-label="语言切换">
+            <button class="is-active" type="button" data-lang="cn">中文</button>
+            <button type="button" data-lang="en">EN</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main" aria-label="内容区域">
+
+        <section class="view is-active" id="view-config">
+          <div class="config-stack">
+            <article class="api-card">
+              <div class="api-form">
+                <label>
+                  <span>API 地址</span>
+                  <input id="apiUrl" type="hidden">
+                  <strong class="api-display-value" id="apiUrlDisplay">未设置</strong>
+                </label>
+                <label>
+                  <span>API Key</span>
+                  <input id="apiKey" type="hidden">
+                  <strong class="api-display-value" id="apiKeyDisplay">未设置</strong>
+                </label>
+              </div>
+            </article>
+
+            <div class="config-grid">
+              <article class="template-card" data-tool="codex">
+                <div class="template-head">
+                  <h2>Codex</h2>
+                  <div class="template-actions">
+                    <span class="tool-missing-badge" hidden>未装</span>
+                    <button class="icon-button settings-button" type="button" data-tool-settings="codex" aria-label="打开 Codex 工具设置" title="工具设置">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21 4h-7"></path>
+                        <path d="M10 4H3"></path>
+                        <path d="M21 12h-9"></path>
+                        <path d="M8 12H3"></path>
+                        <path d="M21 20h-5"></path>
+                        <path d="M12 20H3"></path>
+                        <circle cx="12" cy="4" r="2"></circle>
+                        <circle cx="10" cy="12" r="2"></circle>
+                        <circle cx="14" cy="20" r="2"></circle>
+                      </svg>
+                    </button>
+                    <label class="switch" aria-label="启用 Codex">
+                      <input class="tool-toggle" type="checkbox">
+                      <span></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="template-fields">
+                  <label class="template-field">
+                    <span class="field-label">模型名字</span>
+                    <input class="model-input" type="text" value="gpt-5.5" autocomplete="off" spellcheck="false">
+                  </label>
+                  <label class="template-field">
+                    <span class="field-label">API 类型</span>
+                    <select class="api-type-select">
+                      <option value="openai-responses">openai-responses</option>
+                      <option value="openai-completions">openai-completions</option>
+                      <option value="anthropic-messages">anthropic-messages</option>
+                    </select>
+                  </label>
+                </div>
+              </article>
+              <article class="template-card" data-tool="hermes">
+                <div class="template-head">
+                  <h2>Hermes</h2>
+                  <div class="template-actions">
+                    <span class="tool-missing-badge" hidden>未装</span>
+                    <button class="icon-button settings-button" type="button" data-tool-settings="hermes" aria-label="打开 Hermes 工具设置" title="工具设置">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21 4h-7"></path>
+                        <path d="M10 4H3"></path>
+                        <path d="M21 12h-9"></path>
+                        <path d="M8 12H3"></path>
+                        <path d="M21 20h-5"></path>
+                        <path d="M12 20H3"></path>
+                        <circle cx="12" cy="4" r="2"></circle>
+                        <circle cx="10" cy="12" r="2"></circle>
+                        <circle cx="14" cy="20" r="2"></circle>
+                      </svg>
+                    </button>
+                    <label class="switch" aria-label="启用 Hermes">
+                      <input class="tool-toggle" type="checkbox">
+                      <span></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="template-fields">
+                  <label class="template-field">
+                    <span class="field-label">模型名字</span>
+                    <input class="model-input" type="text" value="gpt-5.5" autocomplete="off" spellcheck="false">
+                  </label>
+                  <label class="template-field">
+                    <span class="field-label">API 类型</span>
+                    <select class="api-type-select">
+                      <option value="openai-responses">openai-responses</option>
+                      <option value="openai-completions">openai-completions</option>
+                      <option value="anthropic-messages">anthropic-messages</option>
+                    </select>
+                  </label>
+                </div>
+              </article>
+              <article class="template-card" data-tool="lobster">
+                <div class="template-head">
+                  <h2>LobsterAI</h2>
+                  <div class="template-actions">
+                    <span class="tool-missing-badge" hidden>未装</span>
+                    <button class="icon-button settings-button" type="button" data-tool-settings="lobster" aria-label="打开 LobsterAI 工具设置" title="工具设置">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21 4h-7"></path>
+                        <path d="M10 4H3"></path>
+                        <path d="M21 12h-9"></path>
+                        <path d="M8 12H3"></path>
+                        <path d="M21 20h-5"></path>
+                        <path d="M12 20H3"></path>
+                        <circle cx="12" cy="4" r="2"></circle>
+                        <circle cx="10" cy="12" r="2"></circle>
+                        <circle cx="14" cy="20" r="2"></circle>
+                      </svg>
+                    </button>
+                    <label class="switch" aria-label="启用 LobsterAI">
+                      <input class="tool-toggle" type="checkbox">
+                      <span></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="template-fields">
+                  <label class="template-field">
+                    <span class="field-label">模型名字</span>
+                    <input class="model-input" type="text" value="gpt-5.5" autocomplete="off" spellcheck="false">
+                  </label>
+                  <label class="template-field">
+                    <span class="field-label">API 类型</span>
+                    <select class="api-type-select">
+                      <option value="openai-responses">openai-responses</option>
+                      <option value="openai-completions">openai-completions</option>
+                      <option value="anthropic-messages">anthropic-messages</option>
+                    </select>
+                  </label>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+        <section class="view" id="view-learn">
+          <div class="learn-stack">
+            <div class="learn-toolbar">
+              <div>
+                <h2>学习</h2>
+                <p id="learnStatusText">文章列表会缓存在本地，已打开过的文章可离线阅读。</p>
+              </div>
+              <div class="learn-actions">
+                <button class="small-button" id="learnSourceBtn" type="button">列表地址</button>
+                <button class="small-button" id="learnRefreshBtn" type="button">刷新</button>
+              </div>
+            </div>
+            <div class="learn-grid" id="learnGrid"></div>
+            <p class="empty-state learn-empty" id="learnEmpty">暂无文章</p>
+          </div>
+        </section>
+        <section class="view" id="view-mine">
+          <div class="mine-stack">
+            <div class="mine-two-grid">
+              <article class="account-panel balance-panel">
+                <div class="panel-head">
+                  <div>
+                    <h2>账户余额</h2>
+                  </div>
+                </div>
+                <div class="balance-large">
+                  <strong id="mineBalance">--</strong>
+                  <span>元</span>
+                </div>
+              </article>
+
+              <article class="account-panel user-panel">
+                <div class="panel-head">
+                  <div>
+                    <h2>用户信息</h2>
+                  </div>
+                </div>
+
+                <div class="user-info-list">
+                  <div class="user-info-row">
+                    <div>
+                      <span>用户名</span>
+                      <strong id="mineUsername">--</strong>
+                    </div>
+                  </div>
+                  <div class="user-info-row">
+                    <div>
+                      <span>密码</span>
+                      <strong id="minePassword">••••••••</strong>
+                    </div>
+                    <label class="password-toggle">
+                      <input id="passwordVisibleToggle" type="checkbox">
+                      显示密码
+                    </label>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <article class="account-panel">
+              <div class="panel-head">
+                <div>
+                  <h2>充值</h2>
+                </div>
+              </div>
+              <div class="topup-products" id="topupProducts"></div>
+              <form class="topup-form" id="topupForm">
+                <label>
+                  <span>兑换码</span>
+                  <input id="topupCode" type="text" autocomplete="off" placeholder="请输入兑换码">
+                </label>
+                <button class="submit-button compact" type="submit">兑换充值码</button>
+              </form>
+              <p class="form-message" id="topupMessage" role="status"></p>
+            </article>
+
+            <article class="account-panel api-key-panel is-collapsed" id="apiKeyPanel">
+              <div class="panel-head api-key-head">
+                <button class="collapse-title-button" id="toggleApiKeyPanelBtn" type="button" aria-expanded="false" aria-controls="apiKeyPanelBody">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 6l6 6-6 6"></path>
+                  </svg>
+                  <span>API Key</span>
+                </button>
+                <button class="small-button refresh-key-button" id="refreshKeysBtn" type="button" aria-label="刷新 API Key 列表">刷新</button>
+              </div>
+
+              <div class="api-key-body" id="apiKeyPanelBody">
+                <div class="token-list" id="tokenList"></div>
+                <p class="empty-state" id="tokenEmpty">暂无 API Key</p>
+
+                <form class="inline-form token-create-form" id="tokenForm">
+                  <label class="visually-hidden">
+                    <span>名称</span>
+                    <input id="tokenName" type="text" autocomplete="off" placeholder="例如 agent_conf">
+                  </label>
+                  <button class="submit-button compact token-create-button" type="submit"><span aria-hidden="true">+</span> 生成 API Key</button>
+                </form>
+
+                <div class="key-reveal" id="keyReveal" hidden>
+                  <span>已读取 Key</span>
+                  <code id="revealedKey"></code>
+                  <button class="small-button" id="useRevealedKeyBtn" type="button">填入配置</button>
+                </div>
+                <p class="form-message" id="tokenMessage" role="status"></p>
+              </div>
+            </article>
+
+            <button class="small-button logout-wide" id="mineLogoutBtn" type="button">退出登录</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="settings-backdrop" id="toolSettingsDialog" hidden>
+      <section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="toolSettingsTitle">
+        <div class="settings-head">
+          <div>
+            <h2 id="toolSettingsTitle">配置文件地址</h2>
+            <p id="toolSettingsSubtitle"></p>
+          </div>
+          <button class="icon-button dialog-close-button" id="closeToolSettingsBtn" type="button" aria-label="关闭工具设置" title="关闭">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12"></path>
+              <path d="M18 6l-12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form class="settings-form" id="toolSettingsForm">
+          <input id="toolSettingsToolId" type="hidden">
+
+          <label class="settings-field">
+            <span>配置文件地址</span>
+            <input id="toolSettingsConfigPath" type="text" autocomplete="off" spellcheck="false" placeholder="C:\\Users\\...\\config.toml">
+            <small>改这里就能找到实际要写入的文件。</small>
+          </label>
+
+          <label class="settings-field" id="toolSettingsExtraPathField" hidden>
+            <span id="toolSettingsExtraPathLabel">附加文件地址</span>
+            <input id="toolSettingsExtraPath" type="text" autocomplete="off" spellcheck="false" placeholder="C:\\Users\\...\\auth.json">
+            <small id="toolSettingsExtraPathHelp">Codex 还会同时写入 auth.json。</small>
+          </label>
+
+          <div class="settings-actions">
+            <button class="secondary-button" id="resetToolSettingsBtn" type="button">恢复默认</button>
+            <button class="submit-button" type="submit">保存设置</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div class="settings-backdrop" id="learnSourceDialog" hidden>
+      <section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="learnSourceTitle">
+        <div class="settings-head">
+          <div>
+            <h2 id="learnSourceTitle">学习列表地址</h2>
+            <p>填入 Gitee raw 的 cards.json 地址，留空时使用本地示例。</p>
+          </div>
+          <button class="icon-button dialog-close-button" id="closeLearnSourceBtn" type="button" aria-label="关闭学习列表设置" title="关闭">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12"></path>
+              <path d="M18 6l-12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form class="settings-form" id="learnSourceForm">
+          <label class="settings-field">
+            <span>cards.json 地址</span>
+            <input id="learnCatalogUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://gitee.com/你的账号/仓库/raw/master/cards.json">
+            <small>卡片列表里写标题、封面和单 HTML 地址。</small>
+          </label>
+
+          <div class="settings-actions">
+            <button class="secondary-button" id="useSampleLearnBtn" type="button">使用示例</button>
+            <button class="submit-button" type="submit">保存并刷新</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div class="article-backdrop" id="articleDialog" hidden>
+      <section class="article-dialog" role="dialog" aria-modal="true" aria-labelledby="articleDialogTitle">
+        <div class="article-dialog-head">
+          <div>
+            <h2 id="articleDialogTitle">文章</h2>
+            <p id="articleDialogMeta">本地缓存</p>
+          </div>
+          <button class="icon-button dialog-close-button" id="closeArticleBtn" type="button" aria-label="关闭文章" title="关闭">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12"></path>
+              <path d="M18 6l-12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <iframe class="article-frame" id="articleFrame" title="学习文章" sandbox></iframe>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" role="img" aria-label="学习模块示例">
+  <rect width="960" height="560" fill="#f6f9ff"/>
+  <rect x="86" y="82" width="788" height="396" rx="22" fill="#ffffff" stroke="#d7e0ef" stroke-width="3"/>
+  <rect x="132" y="130" width="270" height="28" rx="14" fill="#5b86ea"/>
+  <rect x="132" y="196" width="696" height="20" rx="10" fill="#dce5f5"/>
+  <rect x="132" y="246" width="610" height="20" rx="10" fill="#dce5f5"/>
+  <rect x="132" y="296" width="682" height="20" rx="10" fill="#dce5f5"/>
+  <rect x="132" y="366" width="208" height="56" rx="12" fill="#eff4ff" stroke="#bed0f8" stroke-width="2"/>
+  <circle cx="757" cy="378" r="44" fill="#ffd166"/>
+  <path d="M731 378h52M757 352v52" stroke="#243244" stroke-width="10" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,62 @@
+# agent_conf
+
+本地一键配置写入器。用户只填一次 `Base URL / API Key / Model`，软件分别把真实配置写进 Codex、Hermes、LobsterAI。
+
+```text
+真实 API 信息 -> agent_conf -> Codex / Hermes / LobsterAI 配置文件
+```
+
+## 运行
+
+```powershell
+npm start
+```
+
+然后打开：
+
+```text
+http://127.0.0.1:4788
+```
+
+## 当前模式
+
+- 直写模式，不做本地中转
+- 主界面只保留三项：`Base URL`、`API Key`、`Model`
+- Codex：写 `~/.codex/config.toml` 和 `~/.codex/auth.json`
+- Hermes：写 `~/.hermes/config.yaml`，API Key 写 `~/.hermes/.env`
+- LobsterAI：写 `%APPDATA%/LobsterAI/lobsterai.sqlite` 的 `kv.app_config`
+- 写入前展示预览，执行时先备份旧配置，再替换为新配置
+- 支持把上次写入前的备份恢复回原配置
+- 预览、诊断、日志都不显示 API Key 明文
+
+## 学习模块
+
+- 学习页支持读取远程 `cards.json` 卡片列表
+- 每张卡片包含标题、简介、封面图地址、单个 HTML 文章地址
+- 点击文章时会把 HTML 缓存到本地，之后可离线打开
+- 未配置远程地址时，默认读取 [public/learn-sample/catalog.json](public/learn-sample/catalog.json) 示例内容
+
+示例 `cards.json`:
+
+```json
+{
+  "version": "2026-06-18-001",
+  "cards": [
+    {
+      "id": "article-001",
+      "title": "第一篇文章",
+      "desc": "一句简介",
+      "cover": "https://gitee.com/your-name/repo/raw/master/covers/article-001.jpg",
+      "html": "https://gitee.com/your-name/repo/raw/master/articles/article-001.html",
+      "htmlVersion": "1",
+      "updatedAt": "2026-06-18"
+    }
+  ]
+}
+```
+
+建议文章做成单文件 HTML，把正文样式写在 `<style>` 里。这样应用缓存一份 HTML 后，离线阅读最稳。
+
+## 设计记录
+
+见 [docs/direct-write-plan.md](docs/direct-write-plan.md)。

@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录后页面预览</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #fbfcfe;
+        --panel: #ffffff;
+        --ink: #243244;
+        --muted: #7b8798;
+        --line: #e3e8f1;
+        --primary: #5b86ea;
+        --primary-soft: #eff4ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        color: var(--ink);
+        background: var(--bg);
+        font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+      }
+
+      .sidebar {
+        border-right: 1px solid var(--line);
+        background: var(--panel);
+        padding: 18px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .nav {
+        display: grid;
+        gap: 8px;
+      }
+
+      .nav-button {
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--muted);
+        padding: 0 14px;
+        text-align: left;
+        font-weight: 800;
+      }
+
+      .nav-button.is-active {
+        border-color: rgba(91, 134, 234, 0.18);
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .sidebar-bottom {
+        margin-top: auto;
+        display: grid;
+        gap: 12px;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+        font-weight: 900;
+      }
+
+      .logo-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: block;
+      }
+
+      .language-toggle {
+        width: 100%;
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fafbfe;
+        padding: 3px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3px;
+      }
+
+      .language-toggle button {
+        min-height: 30px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .language-toggle button.is-active {
+        background: #fff;
+        color: var(--primary);
+        box-shadow: 0 1px 5px rgba(36, 50, 68, 0.06);
+      }
+
+      .main {
+        min-width: 0;
+        min-height: 100vh;
+        padding: 24px;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.is-active {
+        display: block;
+      }
+
+      .config-stack {
+        display: grid;
+        gap: 16px;
+      }
+
+      .api-card {
+        width: min(100%, 1012px);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 16px;
+      }
+
+      .api-form {
+        display: grid;
+        grid-template-columns: minmax(260px, 1.2fr) minmax(240px, 0.8fr);
+        gap: 12px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      label span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      input {
+        width: 100%;
+        height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--ink);
+        padding: 0 12px;
+        outline: none;
+      }
+
+      input::placeholder {
+        color: #a0aaa6;
+      }
+
+      input:focus {
+        border-color: rgba(91, 134, 234, 0.5);
+        box-shadow: 0 0 0 4px rgba(91, 134, 234, 0.1);
+      }
+
+      .config-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(220px, 320px));
+        gap: 16px;
+      }
+
+      .template-card {
+        min-height: 176px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 16px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .template-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .template-card h2,
+      .field-value {
+        margin: 0;
+        color: var(--ink);
+        font-size: 17px;
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      .template-fields {
+        display: grid;
+        gap: 12px;
+      }
+
+      .field-label {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .field-value {
+        font-size: 14px;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+      }
+
+      .switch {
+        position: relative;
+        width: 46px;
+        height: 26px;
+        flex: 0 0 auto;
+      }
+
+      .switch input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+
+      .switch span {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: #e4eaf4;
+        transition: background 0.16s ease;
+      }
+
+      .switch span::after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 3px;
+        left: 3px;
+        border-radius: 999px;
+        background: #fff;
+        box-shadow: 0 1px 4px rgba(36, 50, 68, 0.14);
+        transition: transform 0.16s ease;
+      }
+
+      .switch input:checked + span {
+        background: var(--primary);
+      }
+
+      .switch input:checked + span::after {
+        transform: translateX(20px);
+      }
+
+      @media (max-width: 720px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .nav {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .sidebar-bottom {
+          grid-template-columns: auto minmax(150px, 220px);
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .nav-button {
+          text-align: center;
+          padding: 0 8px;
+        }
+
+        .main {
+          padding: 16px;
+        }
+
+        .config-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .api-form {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <nav class="nav" aria-label="主导航">
+          <button class="nav-button is-active" type="button" data-view="config" data-cn="配置" data-en="Config">配置</button>
+          <button class="nav-button" type="button" data-view="learn" data-cn="学习" data-en="Learn">学习</button>
+          <button class="nav-button" type="button" data-view="mine" data-cn="我的" data-en="Mine">我的</button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="logo" aria-label="agent_conf">
+            <img class="logo-mark" src="assets/app-logo.png" alt="agent_conf">
+            <span>agent_conf</span>
+          </div>
+          <div class="language-toggle" aria-label="语言切换">
+            <button class="is-active" type="button" data-lang="cn">中文</button>
+            <button type="button" data-lang="en">EN</button>
+          </div>
+        </div>
+      </aside>
+      <main class="main" aria-label="内容区域">
+        <section class="view is-active" id="view-config">
+          <div class="config-stack">
+            <article class="api-card">
+              <div class="api-form">
+                <label>
+                  <span>API 地址</span>
+                  <input type="text" placeholder="https://api.example.com/v1">
+                </label>
+                <label>
+                  <span>API Key</span>
+                  <input type="password" placeholder="sk-...">
+                </label>
+              </div>
+            </article>
+
+            <div class="config-grid">
+              <article class="template-card">
+                <div class="template-head">
+                  <h2>Codex</h2>
+                  <label class="switch" aria-label="启用 Codex">
+                    <input type="checkbox" checked>
+                    <span></span>
+                  </label>
+                </div>
+                <div class="template-fields">
+                  <div>
+                    <span class="field-label">模型名字</span>
+                    <div class="field-value">gpt-5.1</div>
+                  </div>
+                  <div>
+                    <span class="field-label">API 类型</span>
+                    <div class="field-value">OpenAI Compatible</div>
+                  </div>
+                </div>
+              </article>
+              <article class="template-card">
+                <div class="template-head">
+                  <h2>Hermes</h2>
+                  <label class="switch" aria-label="启用 Hermes">
+                    <input type="checkbox" checked>
+                    <span></span>
+                  </label>
+                </div>
+                <div class="template-fields">
+                  <div>
+                    <span class="field-label">模型名字</span>
+                    <div class="field-value">hermes-default</div>
+                  </div>
+                  <div>
+                    <span class="field-label">API 类型</span>
+                    <div class="field-value">OpenAI Compatible</div>
+                  </div>
+                </div>
+              </article>
+              <article class="template-card">
+                <div class="template-head">
+                  <h2>LobsterAI</h2>
+                  <label class="switch" aria-label="启用 LobsterAI">
+                    <input type="checkbox">
+                    <span></span>
+                  </label>
+                </div>
+                <div class="template-fields">
+                  <div>
+                    <span class="field-label">模型名字</span>
+                    <div class="field-value">lobster-chat</div>
+                  </div>
+                  <div>
+                    <span class="field-label">API 类型</span>
+                    <div class="field-value">OpenAI Compatible</div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+        <section class="view" id="view-learn"></section>
+        <section class="view" id="view-mine"></section>
+      </main>
+    </div>
+    <script>
+      const navButtons = document.querySelectorAll(".nav-button");
+      const languageButtons = document.querySelectorAll(".language-toggle button");
+      const views = document.querySelectorAll(".view");
+
+      navButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const view = button.dataset.view;
+
+          navButtons.forEach((item) => {
+            item.classList.toggle("is-active", item === button);
+          });
+
+          views.forEach((item) => {
+            item.classList.toggle("is-active", item.id === `view-${view}`);
+          });
+        });
+      });
+
+      languageButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const lang = button.dataset.lang;
+
+          languageButtons.forEach((item) => {
+            item.classList.toggle("is-active", item === button);
+          });
+
+          navButtons.forEach((item) => {
+            item.textContent = item.dataset[lang];
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

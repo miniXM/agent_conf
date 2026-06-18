@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录页预览</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #fbfcfe;
+        --panel: #ffffff;
+        --ink: #243244;
+        --muted: #7b8798;
+        --line: #e3e8f1;
+        --primary: #5b86ea;
+        --primary-strong: #4a76df;
+        --focus: rgba(91, 134, 234, 0.14);
+        --shadow: 0 18px 46px rgba(36, 50, 68, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 50% 0%, rgba(91, 134, 234, 0.08), transparent 34rem),
+          linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+        font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .page {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+      }
+
+      .login-card {
+        width: min(100%, 400px);
+        border: 1px solid rgba(227, 232, 241, 0.98);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: var(--shadow);
+        padding: 34px;
+      }
+
+      .brand {
+        display: grid;
+        justify-items: center;
+        gap: 14px;
+        margin-bottom: 26px;
+        text-align: center;
+      }
+
+      .brand-mark {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        display: block;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      .brand p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      form {
+        display: grid;
+        gap: 16px;
+      }
+
+      label {
+        display: grid;
+        gap: 7px;
+      }
+
+      label span {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      input {
+        width: 100%;
+        height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--ink);
+        padding: 0 12px;
+        outline: none;
+      }
+
+      input::placeholder {
+        color: #a6afbc;
+      }
+
+      input:focus {
+        border-color: rgba(91, 134, 234, 0.56);
+        box-shadow: 0 0 0 4px var(--focus);
+      }
+
+      .form-tools {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .remember {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .remember input {
+        width: 16px;
+        height: 16px;
+        min-height: 0;
+        accent-color: var(--primary);
+        flex: 0 0 auto;
+      }
+
+      .link-button {
+        border: 0;
+        background: transparent;
+        color: var(--primary);
+        padding: 0;
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .submit-button {
+        height: 44px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--primary);
+        color: #fff;
+        cursor: pointer;
+        font-weight: 800;
+        transition: background 0.16s ease, transform 0.16s ease;
+      }
+
+      .submit-button:hover {
+        background: var(--primary-strong);
+      }
+
+      .submit-button:active {
+        transform: translateY(1px);
+      }
+
+      .divider {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 12px;
+        color: #94a3b8;
+        font-size: 12px;
+        margin: 4px 0;
+      }
+
+      .divider::before,
+      .divider::after {
+        content: "";
+        height: 1px;
+        background: var(--line);
+      }
+
+      .secondary-button {
+        height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--ink);
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      .footnote {
+        margin: 20px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      @media (max-width: 460px) {
+        .page {
+          padding: 18px;
+        }
+
+        .login-card {
+          padding: 26px 20px;
+        }
+
+        .form-tools {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="login-card" aria-labelledby="loginTitle">
+        <div class="brand">
+          <img class="brand-mark" src="assets/app-logo.png" alt="agent_conf">
+          <div>
+            <h1 id="loginTitle">欢迎回来</h1>
+            <p>登录后继续管理 agent_conf</p>
+          </div>
+        </div>
+
+        <form>
+          <label>
+            <span>账号</span>
+            <input type="text" autocomplete="username" placeholder="请输入手机号或邮箱">
+          </label>
+
+          <label>
+            <span>密码</span>
+            <input type="password" autocomplete="current-password" placeholder="请输入登录密码">
+          </label>
+
+          <div class="form-tools">
+            <label class="remember">
+              <input type="checkbox">
+              记住登录状态
+            </label>
+            <button class="link-button" type="button">忘记密码</button>
+          </div>
+
+          <button class="submit-button" type="button">登录</button>
+
+          <div class="divider">或</div>
+
+          <button class="secondary-button" type="button">使用验证码登录</button>
+        </form>
+
+        <p class="footnote">还没有账号？联系管理员开通访问权限</p>
+      </section>
+    </main>
+  </body>
+</html>
