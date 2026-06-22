@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Open Claw 迷你主机产品介绍</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7fb;
+        --panel: #ffffff;
+        --ink: #1f2d3d;
+        --muted: #607086;
+        --line: #d9e2ec;
+        --blue: #2f6feb;
+        --cyan: #0f766e;
+        --amber: #b45309;
+        --soft-blue: #eef4ff;
+        --soft-cyan: #ecfeff;
+        --soft-amber: #fff7ed;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(47, 111, 235, 0.1), transparent 26rem),
+          radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 22rem),
+          var(--bg);
+        font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      }
+
+      .page {
+        width: min(100%, 980px);
+        margin: 0 auto;
+        padding: 26px 18px 64px;
+      }
+
+      .hero,
+      .section,
+      .spec-grid,
+      .note {
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: var(--panel);
+        box-shadow: 0 18px 40px rgba(31, 45, 61, 0.06);
+      }
+
+      .hero {
+        padding: 30px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--soft-blue);
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 18px 0 12px;
+        font-size: clamp(32px, 5.2vw, 48px);
+        line-height: 1.1;
+      }
+
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.9;
+      }
+
+      .hero-grid {
+        margin-top: 22px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .hero-item {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        padding: 16px;
+      }
+
+      .hero-item strong,
+      .hero-item span {
+        display: block;
+      }
+
+      .hero-item strong {
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .hero-item span {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .section {
+        margin-top: 18px;
+        padding: 26px;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 26px;
+      }
+
+      h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+      }
+
+      p,
+      li {
+        color: var(--ink);
+        font-size: 15px;
+        line-height: 1.9;
+      }
+
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 16px;
+      }
+
+      .panel-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        background: #fff;
+      }
+
+      .panel.blue {
+        background: var(--soft-blue);
+        border-color: #cfe0ff;
+      }
+
+      .panel.cyan {
+        background: var(--soft-cyan);
+        border-color: #bee7eb;
+      }
+
+      .panel.amber {
+        background: var(--soft-amber);
+        border-color: #fed7aa;
+      }
+
+      .panel small {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .checklist {
+        display: grid;
+        gap: 12px;
+      }
+
+      .check-item {
+        border-left: 4px solid var(--blue);
+        border-radius: 14px;
+        background: #f8fbff;
+        padding: 14px 16px;
+      }
+
+      .check-item strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 15px;
+      }
+
+      .check-item span {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.8;
+      }
+
+      .spec-grid {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        overflow: hidden;
+      }
+
+      .spec-card {
+        padding: 22px;
+        border-right: 1px solid var(--line);
+      }
+
+      .spec-card:last-child {
+        border-right: 0;
+      }
+
+      .spec-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .spec-head strong {
+        font-size: 22px;
+      }
+
+      .spec-tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--soft-blue);
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .spec-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .spec-row {
+        display: grid;
+        grid-template-columns: 88px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+      }
+
+      .spec-row span {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .spec-row strong {
+        font-size: 14px;
+        line-height: 1.8;
+      }
+
+      .note {
+        margin-top: 18px;
+        padding: 18px 20px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      }
+
+      .note p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .footer {
+        margin-top: 20px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.8;
+        text-align: center;
+      }
+
+      @media (max-width: 780px) {
+        .hero-grid,
+        .two-col,
+        .panel-grid,
+        .spec-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .spec-card {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .spec-card:last-child {
+          border-bottom: 0;
+        }
+
+        .section,
+        .hero {
+          padding: 22px;
+        }
+
+        h2 {
+          font-size: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div class="eyebrow">学习整理 / 产品阅读版</div>
+        <h1>Open Claw 迷你主机，到底解决了什么问题？</h1>
+        <p>
+          这篇内容根据《open claw 迷你主机产品介绍》整理，不是单纯复述宣传文案，而是帮你快速判断：
+          这台机器适合谁、核心卖点是什么、硬件配置够不够，以及下单前最该确认的几个点。
+        </p>
+        <div class="hero-grid">
+          <div class="hero-item">
+            <strong>它卖的核心</strong>
+            <span>不是强算力，而是把 Open Claw 的部署、配置和日常操作做成开箱可用。</span>
+          </div>
+          <div class="hero-item">
+            <strong>最适合的人</strong>
+            <span>不想折腾命令行、又想要独立设备跑自动化流程的个人或小团队。</span>
+          </div>
+          <div class="hero-item">
+            <strong>要先想清楚</strong>
+            <span>这是迷你主机，不是高性能本地大模型工作站，重点在流程落地和省心。</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>一句话先说结论</h2>
+        <p>
+          如果你想用 Open Claw 做办公自动化、电商运营、内容整理这类事情，但又不想自己配环境、
+          改参数、连飞书和企业微信，这台主机的价值很直接：把“能不能跑起来”这个门槛降下去。
+          它本质上卖的是一台专用自动化终端，帮你把日常主力电脑和自动化环境分开。
+        </p>
+      </section>
+
+      <section class="section">
+        <div class="two-col">
+          <div>
+            <h2>它主要想解决的 4 个痛点</h2>
+            <div class="checklist">
+              <div class="check-item">
+                <strong>1. 自己装环境太折腾</strong>
+                <span>从安装、插件、参数到模型接入，很多人还没开始用，就先被部署流程劝退了。</span>
+              </div>
+              <div class="check-item">
+                <strong>2. 命令行门槛高</strong>
+                <span>产品介绍里反复强调可视化配置，重点就是把原本程序员视角的操作换成普通用户能点能配的流程。</span>
+              </div>
+              <div class="check-item">
+                <strong>3. 不想拿办公电脑直接跑</strong>
+                <span>独立主机的意义不是“更快”，而是把自动化运行环境和你的日常资料、聊天、办公分开，使用上更安心。</span>
+              </div>
+              <div class="check-item">
+                <strong>4. 云服务器不顺手</strong>
+                <span>很多人买了云机才发现没有桌面、拓展软件麻烦、实际使用感不如本地设备直接。</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h2>文案里最有价值的能力</h2>
+            <div class="panel-grid">
+              <article class="panel blue">
+                <small>预装环境</small>
+                <h3>开箱即用</h3>
+                <p>收到机器后不用从零折腾 Open Claw，适合想尽快进入实操的人。</p>
+              </article>
+              <article class="panel cyan">
+                <small>系统能力</small>
+                <h3>ClawOS / 可视化配置</h3>
+                <p>介绍中提到可在线升级、可视化换模型、配置飞书和企业微信，重点是把配置动作图形化。</p>
+              </article>
+              <article class="panel amber">
+                <small>控制方式</small>
+                <h3>支持微信直控</h3>
+                <p>不用一直守着后台，手机微信就能触发流程，这对轻量远程使用很友好。</p>
+              </article>
+              <article class="panel">
+                <small>设备形态</small>
+                <h3>迷你主机体积</h3>
+                <p>桌面占地小，也方便作为固定自动化节点长期开机放着跑。</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>哪些人会觉得它值</h2>
+        <div class="panel-grid">
+          <article class="panel">
+            <small>办公自动化</small>
+            <h3>职场党</h3>
+            <p>适合做报表、会议纪要、日程同步、流程串联这类重复性事务。</p>
+          </article>
+          <article class="panel">
+            <small>店铺运营</small>
+            <h3>电商人</h3>
+            <p>适合盯店、整理竞品信息、生成文案、处理固定运营动作。</p>
+          </article>
+          <article class="panel">
+            <small>内容生产</small>
+            <h3>自媒体团队</h3>
+            <p>适合热点搜集、文案草拟、素材归档、批量发布前的准备工作。</p>
+          </article>
+          <article class="panel">
+            <small>轻量流程</small>
+            <h3>小团队和副业场景</h3>
+            <p>适合把报价、合同、客服、数据汇总这种流程拆给一台独立设备去做。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>哪些人别把它想偏了</h2>
+        <div class="panel-grid">
+          <article class="panel amber">
+            <small>不是这个定位</small>
+            <h3>别把它当本地炼大模型的机器</h3>
+            <p>文档给出的配置是四代 i3 / i5 迷你主机，更像自动化控制终端，不是高性能 AI 算力设备。</p>
+          </article>
+          <article class="panel blue">
+            <small>购买预期</small>
+            <h3>别忽略它是二手机型</h3>
+            <p>文档里写明是联想 M73 二手迷你主机，外观可能有轻微磕碰磨损，买前就该接受这一点。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>配置参数，怎么看更实际</h2>
+        <div class="spec-grid">
+          <article class="spec-card">
+            <div class="spec-head">
+              <strong>i3 机型</strong>
+              <span class="spec-tag">入门够用</span>
+            </div>
+            <div class="spec-list">
+              <div class="spec-row">
+                <span>机型</span>
+                <strong>联想 M73 迷你主机（二手）</strong>
+              </div>
+              <div class="spec-row">
+                <span>处理器</span>
+                <strong>Intel i3-4130</strong>
+              </div>
+              <div class="spec-row">
+                <span>内存</span>
+                <strong>8GB</strong>
+              </div>
+              <div class="spec-row">
+                <span>硬盘</span>
+                <strong>128GB SSD</strong>
+              </div>
+              <div class="spec-row">
+                <span>网络</span>
+                <strong>内置 WiFi，带天线，联网即用</strong>
+              </div>
+              <div class="spec-row">
+                <span>接口</span>
+                <strong>网口、VGA、DP、4 个 USB</strong>
+              </div>
+            </div>
+            <p>
+              更适合单人轻量自动化、常规办公流程、文档整理这一类负载不高的任务。
+            </p>
+          </article>
+
+          <article class="spec-card">
+            <div class="spec-head">
+              <strong>i5 机型</strong>
+              <span class="spec-tag">更稳一些</span>
+            </div>
+            <div class="spec-list">
+              <div class="spec-row">
+                <span>机型</span>
+                <strong>联想 M73 迷你主机（二手）</strong>
+              </div>
+              <div class="spec-row">
+                <span>处理器</span>
+                <strong>Intel i5-4590T</strong>
+              </div>
+              <div class="spec-row">
+                <span>内存</span>
+                <strong>16GB</strong>
+              </div>
+              <div class="spec-row">
+                <span>硬盘</span>
+                <strong>256GB SSD</strong>
+              </div>
+              <div class="spec-row">
+                <span>网络</span>
+                <strong>内置 WiFi，带天线，联网即用</strong>
+              </div>
+              <div class="spec-row">
+                <span>接口</span>
+                <strong>网口、VGA、DP、4 个 USB</strong>
+              </div>
+            </div>
+            <p>
+              更适合流程更多、缓存资料更多、希望机器长期挂着跑时更从容一点的使用场景。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>下单前，建议你确认这 5 件事</h2>
+        <div class="checklist">
+          <div class="check-item">
+            <strong>系统镜像现在到底是哪一套</strong>
+            <span>文档里既提到 ClawOS，也提到预装 Clawdbot + Windows。核心意思是“预装好可直接用”，但具体交付环境最好问清楚。</span>
+          </div>
+          <div class="check-item">
+            <strong>你的模型接入方式是什么</strong>
+            <span>如果你本来就用 API 型模型，这类主机很合适；如果你想本地跑重模型，就别把期待放错了位置。</span>
+          </div>
+          <div class="check-item">
+            <strong>飞书、企业微信、微信直控目前支持到什么程度</strong>
+            <span>重点确认自己真正要用的链路是否已经跑通，而不是只看“支持”两个字。</span>
+          </div>
+          <div class="check-item">
+            <strong>售后边界</strong>
+            <span>文档里写的是七天无理由、三个月质保和一对一售后，购买前把故障、重装、远程协助范围问清楚更稳。</span>
+          </div>
+          <div class="check-item">
+            <strong>你到底想省时间还是省预算</strong>
+            <span>如果你会自己部署，自己装也能完成；这台机器真正的价值，是把“折腾时间”换成“直接可用”。</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="note">
+        <p>
+          这篇文章保留了原 PDF 的关键信息：开箱即用、可视化配置、微信直控、两档硬件参数、二手 M73 机型和售后说明。
+          额外补上的部分，是更适合放进学习模块里的使用判断和购买前检查点。
+        </p>
+      </section>
+
+      <p class="footer">
+        整理时间：2026-06-22 ｜ 资料来源：用户提供的 PDF《open claw 迷你主机产品介绍》
+      </p>
+    </main>
+  </body>
+</html>

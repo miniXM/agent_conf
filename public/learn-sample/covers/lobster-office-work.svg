@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" role="img" aria-label="让龙虾帮你做文档表格和PPT">
+  <rect width="960" height="560" fill="#f7fafc"/>
+  <rect x="72" y="72" width="816" height="416" rx="28" fill="#ffffff" stroke="#d9e3ef" stroke-width="3"/>
+  <rect x="122" y="122" width="196" height="270" rx="18" fill="#f8fbff" stroke="#cdd9e8" stroke-width="2"/>
+  <rect x="154" y="158" width="92" height="18" rx="9" fill="#5b86ea"/>
+  <rect x="154" y="204" width="132" height="12" rx="6" fill="#d7e1ef"/>
+  <rect x="154" y="236" width="106" height="12" rx="6" fill="#d7e1ef"/>
+  <rect x="154" y="268" width="126" height="12" rx="6" fill="#d7e1ef"/>
+  <rect x="382" y="122" width="196" height="270" rx="18" fill="#f7fdf9" stroke="#cbe8d6" stroke-width="2"/>
+  <rect x="414" y="158" width="132" height="28" rx="8" fill="#dff7e8"/>
+  <path d="M414 224h132M414 264h132M414 304h132M458 200v136M502 200v136" stroke="#85b99a" stroke-width="8" stroke-linecap="round"/>
+  <rect x="642" y="122" width="196" height="270" rx="18" fill="#fff9f1" stroke="#efd7b2" stroke-width="2"/>
+  <rect x="674" y="158" width="132" height="76" rx="12" fill="#1f2937"/>
+  <rect x="694" y="184" width="72" height="12" rx="6" fill="#f59e0b"/>
+  <rect x="694" y="206" width="92" height="10" rx="5" fill="#566272"/>
+  <rect x="674" y="274" width="60" height="72" rx="10" fill="#ffe9c2"/>
+  <rect x="752" y="274" width="54" height="72" rx="10" fill="#ffe9c2"/>
+  <circle cx="480" cy="434" r="34" fill="#5b86ea"/>
+  <path d="M465 434h30M480 419v30" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
+</svg>

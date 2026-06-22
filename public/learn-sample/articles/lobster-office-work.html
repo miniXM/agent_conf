@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>怎么让龙虾帮你做文档、表格和 PPT</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f8fc;
+        --panel: #ffffff;
+        --ink: #223245;
+        --muted: #64748b;
+        --line: #d9e3ef;
+        --primary: #5b86ea;
+        --accent: #f59e0b;
+        --soft: #eff4ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(91, 134, 234, 0.12), transparent 24rem),
+          radial-gradient(circle at top right, rgba(245, 158, 11, 0.08), transparent 20rem),
+          var(--bg);
+        font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      }
+
+      .page {
+        width: min(100%, 920px);
+        margin: 0 auto;
+        padding: 28px 18px 64px;
+      }
+
+      .hero,
+      .section,
+      .example-block {
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--panel);
+        box-shadow: 0 16px 36px rgba(34, 50, 69, 0.06);
+      }
+
+      .hero {
+        padding: 28px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        border-radius: 999px;
+        background: var(--soft);
+        color: var(--primary);
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 18px 0 12px;
+        font-size: clamp(32px, 5vw, 46px);
+        line-height: 1.12;
+      }
+
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.9;
+      }
+
+      .summary {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .summary-card {
+        min-height: 96px;
+        border-radius: 16px;
+        background: #f8fbff;
+        padding: 16px;
+      }
+
+      .summary-card strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 16px;
+        line-height: 1.3;
+      }
+
+      .summary-card span {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      .stack {
+        margin-top: 18px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .section {
+        padding: 24px;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 24px;
+        line-height: 1.25;
+      }
+
+      h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        line-height: 1.3;
+      }
+
+      p {
+        margin: 0 0 14px;
+        font-size: 16px;
+        line-height: 1.9;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 14px;
+        padding-left: 22px;
+      }
+
+      li {
+        margin-bottom: 10px;
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      .callout {
+        border-left: 4px solid var(--primary);
+        border-radius: 14px;
+        background: #f8fbff;
+        padding: 14px 16px;
+      }
+
+      .callout strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 15px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .grid-item {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #fbfdff;
+        padding: 16px;
+      }
+
+      .grid-item strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 16px;
+      }
+
+      .grid-item p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.8;
+      }
+
+      .example-block {
+        padding: 20px;
+      }
+
+      .example-block + .example-block {
+        margin-top: 14px;
+      }
+
+      .label {
+        display: inline-flex;
+        min-height: 28px;
+        align-items: center;
+        border-radius: 999px;
+        background: #fff5e8;
+        color: #b45309;
+        padding: 5px 11px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      pre {
+        margin: 14px 0 0;
+        border-radius: 16px;
+        background: #111827;
+        color: #e5eefb;
+        padding: 18px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font: 14px/1.8 Consolas, "Courier New", monospace;
+      }
+
+      .footer-note {
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      @media (max-width: 760px) {
+        .page {
+          padding: 16px 12px 36px;
+        }
+
+        .hero,
+        .section,
+        .example-block {
+          padding: 18px;
+          border-radius: 16px;
+        }
+
+        .summary,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <span class="eyebrow">办公场景</span>
+        <h1>怎么让龙虾帮你做文档、表格和 PPT</h1>
+        <p>很多人一上来会问龙虾能不能帮忙干活。其实更准确的问法不是“能不能”，而是“你要它交付什么文件”。如果你的目标是拿到一份 Word 文档、一个 Excel 表格，或者一套汇报 PPT，那它就更容易干得像样。</p>
+
+        <div class="summary">
+          <div class="summary-card">
+            <strong>文档</strong>
+            <span>周报、方案、纪要、总结、报告初稿</span>
+          </div>
+          <div class="summary-card">
+            <strong>表格</strong>
+            <span>汇总表、分析表、对比表、带公式的工作簿</span>
+          </div>
+          <div class="summary-card">
+            <strong>PPT</strong>
+            <span>项目汇报、产品介绍、复盘材料、提案框架</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="stack">
+        <section class="section">
+          <h2>先别问它会不会，先把交付物说清楚</h2>
+          <p>龙虾这种工具型助手，最怕的不是任务难，而是目标模糊。你如果只说“帮我整理一下”“做个 PPT”“分析一下这个表”，它大概率会给你一堆中间过程，而不是你真的能拿去交差的文件。</p>
+          <div class="callout">
+            <strong>更有效的说法</strong>
+            <p>直接说清楚输入材料、目标、输出格式、篇幅或页数、风格要求。它就更像一个在替你产出结果的同事，而不是陪你聊天的助手。</p>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>一条好需求，至少要有这四样</h2>
+          <div class="grid">
+            <div class="grid-item">
+              <strong>1. 原始材料</strong>
+              <p>会议记录、PDF、表格、截图、网页内容、零散笔记，都可以。</p>
+            </div>
+            <div class="grid-item">
+              <strong>2. 交付目标</strong>
+              <p>是写文档、整理表格，还是做 PPT，不要混着说。</p>
+            </div>
+            <div class="grid-item">
+              <strong>3. 输出格式</strong>
+              <p>明确写 `docx`、`xlsx`、`pptx`，别只说“整理一下”。</p>
+            </div>
+            <div class="grid-item">
+              <strong>4. 结果要求</strong>
+              <p>比如几页、几列、商务风格、是否带标题、是否加公式。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>场景一：让它帮你写 Word 文档</h2>
+          <p>文档最适合让它处理的，是那些结构已经比较清楚，但你懒得从零组织语言的活。比如会议纪要、周报、方案初稿、调研摘要、流程说明、给领导的汇报文字版。</p>
+
+          <div class="example-block">
+            <span class="label">例子 1</span>
+            <h3>把会议记录整理成周报</h3>
+            <pre>请根据我提供的会议记录，整理成一份正式周报，输出 docx。
+
+要求：
+1. 用正式书面语
+2. 结构包含：本周进展、已完成事项、待推进事项、风险与建议
+3. 控制在 1 到 2 页
+4. 如果原记录里有重复内容，请合并表达
+5. 最终给我一份可直接发送的文档</pre>
+          </div>
+
+          <div class="example-block">
+            <span class="label">例子 2</span>
+            <h3>把零散材料整理成方案初稿</h3>
+            <pre>我会给你产品资料、客户需求和几段零散说明。请帮我整理成一份项目方案初稿，输出 docx。
+
+要求：
+1. 结构包含：背景、目标、解决方案、实施步骤、时间计划、风险点
+2. 风格简洁商务
+3. 不要写空泛套话
+4. 不确定的信息请单独列为“待确认事项”</pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>场景二：让它帮你做 Excel 表格</h2>
+          <p>表格不是只有“填数据”这一种活。很多时候真正麻烦的是：合并多个来源、统一字段、补公式、做汇总、拆分类别、生成适合继续编辑的结构。这个特别适合交给它。</p>
+
+          <div class="example-block">
+            <span class="label">例子 1</span>
+            <h3>把多个表整理成统一汇总表</h3>
+            <pre>我会给你几份销售明细表，请把字段统一后合并成一个总表，输出 xlsx。
+
+要求：
+1. 统一列名
+2. 去掉重复记录
+3. 增加“月份”“渠道”“地区”字段
+4. 新建一个汇总 sheet，按月份和地区统计销售额
+5. 汇总 sheet 用公式，不要写死结果</pre>
+          </div>
+
+          <div class="example-block">
+            <span class="label">例子 2</span>
+            <h3>做一个可继续使用的分析表</h3>
+            <pre>请根据这份原始数据，帮我做一个分析工作簿，输出 xlsx。
+
+要求：
+1. 原始数据保留在一个 sheet
+2. 新建分析 sheet，包含总量、均值、环比、排名
+3. 能用公式自动更新，不要把结果硬编码
+4. 重点指标用醒目格式区分
+5. 保证没有公式错误</pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>场景三：让它帮你做 PPT</h2>
+          <p>PPT 最适合拿来做“先出一版能看”的东西。尤其是你已经有文档、表格、会议纪要或者提案内容时，先让它帮你整理成页结构，再慢慢改，比你空白开干快得多。</p>
+
+          <div class="example-block">
+            <span class="label">例子 1</span>
+            <h3>把方案整理成汇报 PPT</h3>
+            <pre>请根据我提供的方案文档，做一版 10 页以内的汇报 PPT，输出 pptx。
+
+要求：
+1. 风格简洁商务
+2. 首页写主题和副标题
+3. 中间按“背景、问题、方案、计划、风险、结论”展开
+4. 每页文字不要太满
+5. 适合给领导快速汇报</pre>
+          </div>
+
+          <div class="example-block">
+            <span class="label">例子 2</span>
+            <h3>把表格和文档一起变成复盘材料</h3>
+            <pre>我会给你一份数据表和一份项目总结，请整合成一套复盘 PPT，输出 pptx。
+
+要求：
+1. 先概括项目目标和结果
+2. 数据页突出关键指标，不要把表格原样搬上去
+3. 给出问题、原因、改进建议
+4. 全部控制在 8 页以内
+5. 用正式汇报语气</pre>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>什么时候它做得好，什么时候你要多盯一下</h2>
+          <ol>
+            <li>有原始材料时，它比纯空想更靠谱。你给它内容，它更容易做出像样结果。</li>
+            <li>格式越明确，返工越少。特别是 `docx / xlsx / pptx` 这种，直接说清楚。</li>
+            <li>表格类任务要特别强调“公式不要写死”。不然它可能只给你静态结果。</li>
+            <li>PPT 类任务要强调页数和听众。给领导看的，和给客户看的，结构不一样。</li>
+            <li>第一版通常先求完整，再求精致。先让它把骨架和内容搭出来，第二轮再修语气和样式。</li>
+          </ol>
+        </section>
+
+        <section class="section">
+          <h2>最简单的理解方式</h2>
+          <p>不要把龙虾想成“会聊天的 AI”。在办公场景里，更有用的理解方式是：它是一个能帮你生产文件初稿的助手。</p>
+          <div class="callout">
+            <strong>一句话记住</strong>
+            <p>你给它材料，告诉它要交付什么文件，再把结构和格式说清楚，它就更容易真的帮你把活往前推一大步。</p>
+          </div>
+          <p class="footer-note">如果你下一次不知道怎么问，直接从这句开始：<strong>“我会给你原始材料，请帮我整理成一份可直接交付的 [docx/xlsx/pptx]。”</strong></p>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

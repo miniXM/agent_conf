@@ -1,6 +1,24 @@
 {
-  "version": "2026-06-18-001",
+  "version": "2026-06-22-002",
   "cards": [
+    {
+      "id": "open-claw-mini-host",
+      "title": "Open Claw 迷你主机产品介绍",
+      "desc": "整理这台迷你主机的定位、能力边界、配置参数和适用场景。",
+      "cover": "/learn-sample/covers/open-claw-mini-host.svg",
+      "html": "/learn-sample/articles/open-claw-mini-host.html",
+      "htmlVersion": "1",
+      "updatedAt": "2026-06-22"
+    },
+    {
+      "id": "lobster-office-work",
+      "title": "让龙虾帮你做文档、表格和 PPT",
+      "desc": "别只问它会不会，直接告诉它要交付 docx、xlsx 还是 pptx。",
+      "cover": "/learn-sample/covers/lobster-office-work.svg",
+      "html": "/learn-sample/articles/lobster-office-work.html",
+      "htmlVersion": "1",
+      "updatedAt": "2026-06-22"
+    },
     {
       "id": "sample-notes",
       "title": "学习模块示例文章",
