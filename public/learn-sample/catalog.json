@@ -1,6 +1,24 @@
 {
-  "version": "2026-06-22-002",
+  "version": "2026-06-22-003",
   "cards": [
+    {
+      "id": "openclaw-feishu-guide",
+      "title": "OpenClaw 接入飞书",
+      "desc": "打开菜鸟教程原文，保留作者图文排版和完整步骤。",
+      "cover": "/learn-sample/covers/openclaw-feishu-guide.svg",
+      "html": "https://www.runoob.com/ai-agent/openclaw-feishu.html",
+      "htmlVersion": "1",
+      "updatedAt": "2026-06-22"
+    },
+    {
+      "id": "hermes-feishu-guide",
+      "title": "一步步使用 Hermes Agent（含飞书接入）",
+      "desc": "打开飞书原文，查看 Hermes Agent 安装配置和飞书接入教程。",
+      "cover": "/learn-sample/covers/hermes-feishu-guide.svg",
+      "html": "https://www.feishu.cn/content/article/7630758640865037530",
+      "htmlVersion": "1",
+      "updatedAt": "2026-06-22"
+    },
     {
       "id": "open-claw-mini-host",
       "title": "Open Claw 迷你主机产品介绍",

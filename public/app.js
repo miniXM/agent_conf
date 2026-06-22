@@ -579,6 +579,11 @@ function closeLearnReader() {
 
 async function openLearnArticle(card, triggerButton) {
   if (!card || !card.id) return;
+  const directArticleUrl = String(card.html || "").trim();
+  if (/^https?:\/\//i.test(directArticleUrl)) {
+    window.open(directArticleUrl, "_blank", "noopener,noreferrer");
+    return;
+  }
   if (triggerButton) {
     triggerButton.disabled = true;
     triggerButton.classList.add("is-loading");
