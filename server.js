@@ -10,9 +10,16 @@ const { createDmapiAuthService, createLocalUserStore } = require("./dmapi-auth-s
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = Number(process.env.PORT || 4788);
 const ROOT = __dirname;
+
+function resolveDataDir() {
+  const customDataDir = String(process.env.AGENT_CONF_DATA_DIR || "").trim();
+  if (customDataDir) return path.resolve(customDataDir);
+  return path.join(ROOT, ".agent-conf");
+}
+
 const PUBLIC_DIR = path.join(ROOT, "public");
 const ASSETS_DIR = path.join(ROOT, "assets");
-const DATA_DIR = path.join(ROOT, ".agent-conf");
+const DATA_DIR = resolveDataDir();
 const LEARN_DIR = path.join(DATA_DIR, "learn");
 const LEARN_SOURCE_PATH = path.join(LEARN_DIR, "source.json");
 const LEARN_CATALOG_CACHE_PATH = path.join(LEARN_DIR, "catalog-cache.json");
@@ -29,8 +36,13 @@ const CODEX_AUTH_PATH = path.join(CODEX_HOME, "auth.json");
 const HERMES_HOME = process.env.HERMES_HOME || path.join(os.homedir(), ".hermes");
 const HERMES_ENV_PATH = path.join(HERMES_HOME, ".env");
 const LOBSTER_PROVIDER_KEY = "custom_0";
+const DEFAULT_PROVIDER_BASE_URL = "https://token.minapp.xin/v1";
 const BUYTOKEN_BASE_URL = "https://buytoken.clawos.cc";
 const APP_NAME = "agent_conf";
+const TOOL_REGISTRY_PATH = path.join(ROOT, "config", "tool-registry.json");
+const WRITE_RULES_PATH = path.join(ROOT, "config", "write-rules.json");
+const TOOL_VERSION_CACHE_TTL_MS = 5 * 60 * 1000;
+const TOOL_VERSION_CACHE = new Map();
 
 const API_TYPES = {
   "openai-responses": {
@@ -267,6 +279,10 @@ function normalizeBaseUrl(input) {
   parsed.hash = "";
   parsed.search = "";
   return parsed.toString().replace(/\/+$/, "");
+}
+
+function isOpenAiDefaultBaseUrl(value) {
+  return String(value || "").trim().replace(/\/+$/, "") === "https://api.openai.com/v1";
 }
 
 function normalizeOpenAiApiKey(input) {
@@ -1024,6 +1040,266 @@ function buildGenericJson(tool, config) {
   )}\n`;
 }
 
+function defaultToolRegistry() {
+  return {
+    schemaVersion: 1,
+    tools: {
+      codex: {
+        writerVersion: "codex-config-v1",
+        versions: ["0.137.0"],
+        versionSources: [
+          {
+            type: "file",
+            path: "${APPDATA}\\npm\\node_modules\\@openai\\codex\\package.json",
+            extract: {
+              pattern: "\"version\"\\s*:\\s*\"([^\"]+)\"",
+              flags: "m",
+              group: 1
+            }
+          },
+          {
+            type: "command",
+            command: "codex",
+            args: ["--version"],
+            timeoutMs: 1200,
+            extract: {
+              pattern: "codex-cli\\s+([^\\s]+)",
+              flags: "m",
+              group: 1
+            }
+          }
+        ]
+      },
+      hermes: {
+        writerVersion: "hermes-config-v1",
+        versions: ["0.15.1"],
+        versionSources: [
+          {
+            type: "file",
+            path: "${LOCALAPPDATA}\\hermes\\hermes-agent\\hermes_agent.egg-info\\PKG-INFO",
+            extract: {
+              pattern: "^Version:\\s*([^\\r\\n]+)$",
+              flags: "m",
+              group: 1
+            }
+          },
+          {
+            type: "command",
+            command: "hermes",
+            args: ["--version"],
+            timeoutMs: 1200,
+            extract: {
+              pattern: "Hermes Agent\\s+v?([0-9]+(?:\\.[0-9]+)+(?:\\.[0-9]+)?)",
+              flags: "i",
+              group: 1
+            }
+          }
+        ]
+      },
+      lobster: {
+        writerVersion: "lobster-sqlite-v1",
+        versions: ["2026.6.15.0"],
+        versionSources: [
+          {
+            type: "file-version",
+            path: "${LOCALAPPDATA}\\Programs\\LobsterAI\\LobsterAI.exe"
+          }
+        ]
+      }
+    }
+  };
+}
+
+function expandRegistryTemplate(value) {
+  return String(value || "").replace(/\$\{([A-Z0-9_]+)\}/g, (_, key) => {
+    if (key === "ROOT") return ROOT;
+    if (key === "CODEX_HOME") return CODEX_HOME;
+    if (key === "HERMES_HOME") return HERMES_HOME;
+    if (key === "APPDATA") return APPDATA;
+    if (key === "LOCALAPPDATA") return process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
+    return process.env[key] || "";
+  });
+}
+
+function normalizeToolRegistry(registry) {
+  const fallback = defaultToolRegistry();
+  const tools = registry && registry.tools && typeof registry.tools === "object" && !Array.isArray(registry.tools)
+    ? registry.tools
+    : {};
+  const out = {
+    schemaVersion: Number(registry && registry.schemaVersion) || 1,
+    tools: {}
+  };
+  for (const [toolId, defaults] of Object.entries(fallback.tools)) {
+    const value = tools[toolId] && typeof tools[toolId] === "object" && !Array.isArray(tools[toolId])
+      ? tools[toolId]
+      : {};
+    const versionSources = Array.isArray(value.versionSources) && value.versionSources.length
+      ? value.versionSources
+      : defaults.versionSources;
+    out.tools[toolId] = {
+      writerVersion: String(value.writerVersion || defaults.writerVersion || "").trim(),
+      versions: Array.from(new Set([
+        ...(Array.isArray(value.versions) ? value.versions : []),
+        ...(Array.isArray(defaults.versions) ? defaults.versions : [])
+      ].map(item => String(item || "").trim()).filter(Boolean))),
+      versionSources: versionSources.map(source => ({
+        ...source,
+        type: String(source.type || "command").trim()
+      }))
+    };
+  }
+  return out;
+}
+
+function loadToolRegistry() {
+  if (loadToolRegistry.cache) return loadToolRegistry.cache;
+  let registry = defaultToolRegistry();
+  if (exists(TOOL_REGISTRY_PATH)) {
+    try {
+      registry = parseJsonObject(readFileSafe(TOOL_REGISTRY_PATH), "Tool registry");
+    } catch (error) {
+      console.error(`Failed to read tool registry: ${error.message || error}`);
+    }
+  }
+  loadToolRegistry.cache = normalizeToolRegistry(registry);
+  return loadToolRegistry.cache;
+}
+
+function getToolRegistryEntry(toolId) {
+  const registry = loadToolRegistry();
+  return registry.tools[toolId] || defaultToolRegistry().tools[toolId] || { writerVersion: "", versions: [], versionSources: [] };
+}
+
+function firstNonEmptyValue(values) {
+  for (const value of values) {
+    if (value !== undefined && value !== null && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+  return "";
+}
+
+function runCommandText(command, args = [], timeoutMs = 1200) {
+  const result = spawnSync(command, args, {
+    encoding: "utf8",
+    timeout: timeoutMs,
+    windowsHide: true
+  });
+  return firstNonEmptyValue([result.stdout, result.stderr]);
+}
+
+function readWindowsFileVersion(filePath) {
+  if (process.platform !== "win32") return "";
+  const resolved = sanitizePath(filePath);
+  if (!exists(resolved)) return "";
+  const script = [
+    '$p = $env:VERSION_PATH',
+    'if (Test-Path -LiteralPath $p) {',
+    '  $item = Get-Item -LiteralPath $p',
+    '  if ($item -and $item.VersionInfo) {',
+    '    Write-Output $item.VersionInfo.ProductVersion',
+    '    Write-Output $item.VersionInfo.FileVersion',
+    '  }',
+    '}'
+  ].join("; ");
+  const result = spawnSync("powershell", ["-NoProfile", "-Command", script], {
+    encoding: "utf8",
+    timeout: 3000,
+    windowsHide: true,
+    env: {
+      ...process.env,
+      VERSION_PATH: resolved
+    }
+  });
+  return firstNonEmptyValue([result.stdout, result.stderr]);
+}
+
+function extractVersionText(text, extract) {
+  const raw = firstNonEmptyValue([text]);
+  if (!raw) return "";
+  if (!extract || !extract.pattern) {
+    return raw.split(/\r?\n/).map(line => line.trim()).find(Boolean) || "";
+  }
+  const flags = String(extract.flags || "m");
+  const groupIndex = Number.isInteger(extract.group) ? extract.group : 1;
+  const match = raw.match(new RegExp(extract.pattern, flags));
+  if (!match) return "";
+  return firstNonEmptyValue([match[groupIndex], match[0]]);
+}
+
+function detectVersionFromSource(source) {
+  if (!source || typeof source !== "object") return null;
+  const type = String(source.type || "command").trim();
+  if (type === "command") {
+    const command = expandRegistryTemplate(source.command);
+    const args = Array.isArray(source.args) ? source.args.map(item => expandRegistryTemplate(item)) : [];
+    const text = runCommandText(command, args, Number(source.timeoutMs) || 1200);
+    const version = extractVersionText(text, source.extract);
+    if (!version) return null;
+    return {
+      version,
+      detail: version,
+      sourceType: type
+    };
+  }
+  if (type === "file") {
+    const filePath = sanitizePath(expandRegistryTemplate(source.path));
+    const raw = readFileSafe(filePath);
+    const version = extractVersionText(raw, source.extract);
+    if (!version) return null;
+    return {
+      version,
+      detail: version,
+      sourceType: type,
+      sourcePath: filePath
+    };
+  }
+  if (type === "file-version") {
+    const filePath = sanitizePath(expandRegistryTemplate(source.path));
+    const raw = readWindowsFileVersion(filePath);
+    const version = extractVersionText(raw, source.extract);
+    if (!version) return null;
+    return {
+      version,
+      detail: version,
+      sourceType: type,
+      sourcePath: filePath
+    };
+  }
+  return null;
+}
+
+function detectToolVersion(toolId) {
+  const now = Date.now();
+  const cached = TOOL_VERSION_CACHE.get(toolId);
+  if (cached && now - cached.at < TOOL_VERSION_CACHE_TTL_MS) {
+    return cached.value;
+  }
+
+  const registryEntry = getToolRegistryEntry(toolId);
+  const sourceList = Array.isArray(registryEntry.versionSources) ? registryEntry.versionSources : [];
+  let match = null;
+  for (const source of sourceList) {
+    match = detectVersionFromSource(source);
+    if (match && match.version) break;
+  }
+
+  const value = {
+    toolVersion: match ? match.version : firstNonEmptyValue(Array.isArray(registryEntry.versions) ? registryEntry.versions : []),
+    toolVersions: Array.from(new Set([
+      match ? match.version : "",
+      ...(Array.isArray(registryEntry.versions) ? registryEntry.versions : [])
+    ].map(item => String(item || "").trim()).filter(Boolean))),
+    toolVersionDetail: match ? firstNonEmptyValue([match.detail, match.version]) : "",
+    toolVersionSource: match ? match.sourceType : "",
+    writerVersion: String(registryEntry.writerVersion || "").trim()
+  };
+
+  TOOL_VERSION_CACHE.set(toolId, { at: now, value });
+  return value;
+}
+
 function buildLobsterAppConfig(currentConfig, config, apiKey) {
   const next = currentConfig && typeof currentConfig === "object" && !Array.isArray(currentConfig)
     ? { ...currentConfig }
@@ -1113,9 +1389,427 @@ function maskConfigObject(value, parentKey = "") {
 
 function maskPotentialSecretsInText(content) {
   return String(content || "").replace(
-    /^(\s*(?:experimental_bearer_token|api_key|token|secret|password)\s*=\s*)(".*?"|'.*?'|\S+)/gim,
-    '$1"<redacted>"'
+    /^(\s*(?:"|')?(?:experimental_bearer_token|api_key|openai_api_key|token|secret|password)(?:"|')?\s*[:=]\s*)(".*?"|'.*?'|[^,\r\n]+)(\s*,?\s*)$/gim,
+    '$1"<redacted>"$3'
   );
+}
+
+function defaultWriteRules() {
+  return {
+    schemaVersion: 1,
+    tools: {
+      codex: {
+        entries: [
+          {
+            id: "codex",
+            name: "Codex config.toml",
+            type: "codex-toml",
+            format: "text",
+            pathKey: "path",
+            operations: [
+              {
+                op: "toml.removeTables",
+                providerId: "${providerId}"
+              },
+              {
+                op: "toml.upsertRoot",
+                values: {
+                  model: "${model}",
+                  model_provider: "${providerId}"
+                }
+              },
+              {
+                op: "text.appendBlock",
+                blockLines: [
+                  "# Managed by ${appName}. Direct write mode: real provider URL, API key from auth.json.",
+                  "[model_providers.${providerId}]",
+                  "name = \"${providerName}\"",
+                  "base_url = \"${baseUrl}\"",
+                  "wire_api = \"${codexWireApi}\"",
+                  "requires_openai_auth = true"
+                ]
+              }
+            ]
+          },
+          {
+            id: "codex-auth",
+            name: "Codex auth.json",
+            type: "codex-auth-json",
+            format: "text",
+            displayMode: "json-masked",
+            pathKey: "authPath",
+            operations: [
+              {
+                op: "json.set",
+                path: "OPENAI_API_KEY",
+                value: "${openaiAuthKey}"
+              }
+            ]
+          }
+        ]
+      },
+      hermes: {
+        entries: [
+          {
+            id: "hermes-config",
+            name: "Hermes config.yaml",
+            type: "hermes-yaml",
+            format: "text",
+            pathKey: "path",
+            operations: [
+              {
+                op: "yaml.removeTopLevelBlock",
+                key: "model"
+              },
+              {
+                op: "yaml.removeTopLevelBlock",
+                key: "providers"
+              },
+              {
+                op: "text.appendBlock",
+                blockLines: [
+                  "# Managed by ${appName}. Direct custom endpoint.",
+                  "model:",
+                  "  default: \"${model}\"",
+                  "  provider: custom",
+                  "  base_url: \"${baseUrl}\"",
+                  "  supports_vision: ${supportsVision}",
+                  "  api_key: \"${apiKey}\""
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      lobster: {
+        entries: [
+          {
+            id: "lobster",
+            name: "LobsterAI",
+            type: "lobster-sqlite",
+            format: "lobster",
+            pathKey: "path",
+            operations: [
+              {
+                op: "lobster.appConfig"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  };
+}
+
+function normalizeWriteRules(rules) {
+  const fallback = defaultWriteRules();
+  const tools = rules && rules.tools && typeof rules.tools === "object" && !Array.isArray(rules.tools)
+    ? rules.tools
+    : {};
+  const out = {
+    schemaVersion: Number(rules && rules.schemaVersion) || 1,
+    tools: {}
+  };
+  for (const [toolId, defaults] of Object.entries(fallback.tools)) {
+    const toolRule = tools[toolId] && typeof tools[toolId] === "object" && !Array.isArray(tools[toolId])
+      ? tools[toolId]
+      : {};
+    out.tools[toolId] = {
+      entries: Array.isArray(toolRule.entries) && toolRule.entries.length ? toolRule.entries : defaults.entries
+    };
+  }
+  return out;
+}
+
+function loadWriteRules() {
+  if (loadWriteRules.cache) return loadWriteRules.cache;
+  let rules = defaultWriteRules();
+  if (exists(WRITE_RULES_PATH)) {
+    try {
+      rules = parseJsonObject(readFileSafe(WRITE_RULES_PATH), "Write rules");
+    } catch (error) {
+      console.error(`Failed to read write rules: ${error.message || error}`);
+    }
+  }
+  loadWriteRules.cache = normalizeWriteRules(rules);
+  return loadWriteRules.cache;
+}
+
+function getWriteRule(toolId) {
+  const rules = loadWriteRules();
+  return rules.tools[toolId] || defaultWriteRules().tools[toolId] || { entries: [] };
+}
+
+function interpolateRuleValue(value, context) {
+  if (Array.isArray(value)) return value.map(item => interpolateRuleValue(item, context));
+  if (value && typeof value === "object") {
+    const out = {};
+    for (const [key, item] of Object.entries(value)) {
+      out[key] = interpolateRuleValue(item, context);
+    }
+    return out;
+  }
+  if (typeof value !== "string") return value;
+  const exact = value.match(/^\$\{([^}]+)\}$/);
+  if (exact) {
+    return context[exact[1]];
+  }
+  return value.replace(/\$\{([^}]+)\}/g, (_, key) => {
+    const resolved = context[key];
+    return resolved === undefined || resolved === null ? "" : String(resolved);
+  });
+}
+
+function setObjectPath(target, pathText, value) {
+  const parts = String(pathText || "").split(".").filter(Boolean);
+  if (!parts.length) throw new Error("JSON set path is required.");
+  let current = target;
+  for (let index = 0; index < parts.length - 1; index += 1) {
+    const key = parts[index];
+    if (!current[key] || typeof current[key] !== "object" || Array.isArray(current[key])) {
+      current[key] = {};
+    }
+    current = current[key];
+  }
+  current[parts[parts.length - 1]] = value;
+}
+
+function applyTextBlock(content, blockLines) {
+  const block = Array.isArray(blockLines) ? blockLines.join("\n").trimEnd() : String(blockLines || "").trimEnd();
+  const base = String(content || "").trimEnd();
+  if (!block) return base ? `${base}\n` : "";
+  return base ? `${base}\n\n${block}\n` : `${block}\n`;
+}
+
+function executeTextRuleOperation(current, operation, context, label) {
+  const op = String(operation && operation.op || "").trim();
+  if (op === "toml.removeTables") {
+    return removeTomlTables(String(current || ""), String(interpolateRuleValue(operation.providerId, context) || ""));
+  }
+  if (op === "toml.upsertRoot") {
+    return upsertRootTomlKeys(String(current || ""), interpolateRuleValue(operation.values || {}, context));
+  }
+  if (op === "yaml.removeTopLevelBlock") {
+    return removeYamlTopLevelBlock(String(current || ""), String(interpolateRuleValue(operation.key, context) || ""));
+  }
+  if (op === "text.appendBlock") {
+    return applyTextBlock(String(current || ""), interpolateRuleValue(operation.blockLines || [], context));
+  }
+  if (op === "json.set") {
+    const next = parseJsonObject(String(current || ""), label);
+    setObjectPath(next, interpolateRuleValue(operation.path, context), interpolateRuleValue(operation.value, context));
+    return stringifyJsonObject(next);
+  }
+  throw new Error(`Unsupported write rule op: ${op}`);
+}
+
+function applyTextRuleOperations(current, operations, context, label) {
+  let next = String(current || "");
+  for (const operation of operations || []) {
+    next = executeTextRuleOperation(next, operation, context, label);
+  }
+  return next;
+}
+
+function buildWriteRuleContext(target, config, apiKey, options = {}) {
+  const includeSecrets = options.includeSecrets === true;
+  const apiTypeConfig = getApiTypeConfig(config.apiType);
+  return {
+    appName: APP_NAME,
+    toolId: target.id,
+    toolName: target.name,
+    targetPath: target.path,
+    authPath: target.authPath || "",
+    envPath: target.envPath || "",
+    model: config.model,
+    providerId: config.providerId,
+    providerName: config.providerName,
+    baseUrl: config.baseUrl,
+    apiType: config.apiType,
+    codexWireApi: apiTypeConfig.codexWireApi,
+    hermesApiMode: apiTypeConfig.hermesApiMode,
+    lobsterApiFormat: apiTypeConfig.lobsterApiFormat,
+    supportsVision: Boolean(config.supportsVision),
+    apiKey: includeSecrets ? (apiKey || "") : (apiKey ? maskSecret(apiKey) : ""),
+    openaiAuthKey: includeSecrets ? (apiKey || "") : (apiKey ? maskSecret(apiKey) : "<OPENAI_API_KEY>"),
+    lobsterProviderKey: LOBSTER_PROVIDER_KEY
+  };
+}
+
+function resolveRulePath(target, entry) {
+  if (entry.pathKey && target[entry.pathKey]) {
+    return sanitizePath(target[entry.pathKey]);
+  }
+  if (entry.pathTemplate) {
+    return sanitizePath(interpolateRuleValue(entry.pathTemplate, {
+      path: target.path,
+      authPath: target.authPath || "",
+      envPath: target.envPath || ""
+    }));
+  }
+  return sanitizePath(target.path);
+}
+
+function buildMaskedJsonPreview(definition, target, filePath, beforeRaw, afterRaw, actualAfter, includeSecrets) {
+  const before = exists(filePath) && String(beforeRaw || "").trim()
+    ? stringifyJsonObject(maskConfigObject(parseJsonObject(beforeRaw, definition.name)))
+    : "";
+  const after = String(afterRaw || "").trim()
+    ? stringifyJsonObject(maskConfigObject(parseJsonObject(afterRaw, definition.name)))
+    : "";
+  return {
+    id: definition.id,
+    name: definition.name,
+    path: filePath,
+    type: definition.type || target.type,
+    exists: exists(filePath),
+    stable: target.stable,
+    before,
+    after,
+    actualAfter: includeSecrets ? actualAfter : undefined,
+    planOnly: false,
+    diff: lineDiff(before, after)
+  };
+}
+
+function executeLobsterRuleOperations(currentValue, operations, config, apiKey) {
+  let next = currentValue && typeof currentValue === "object" && !Array.isArray(currentValue)
+    ? cloneJson(currentValue)
+    : {};
+  for (const operation of operations || []) {
+    const op = String(operation && operation.op || "").trim();
+    if (op === "lobster.appConfig") {
+      next = buildLobsterAppConfig(next, config, apiKey);
+    } else {
+      throw new Error(`Unsupported lobster write rule op: ${op}`);
+    }
+  }
+  return next;
+}
+
+function buildRuleTextPreview(definition, target, beforeRaw, displayContext, actualContext, includeSecrets) {
+  const afterRaw = applyTextRuleOperations(beforeRaw, definition.operations, displayContext, definition.name);
+  const actualAfter = includeSecrets
+    ? applyTextRuleOperations(beforeRaw, definition.operations, actualContext, definition.name)
+    : undefined;
+  const filePath = resolveRulePath(target, definition);
+  if (definition.displayMode === "json-masked") {
+    return buildMaskedJsonPreview(definition, target, filePath, beforeRaw, afterRaw, actualAfter, includeSecrets);
+  }
+  return filePreview({
+    id: definition.id,
+    name: definition.name,
+    type: definition.type || target.type,
+    path: filePath,
+    stable: target.stable,
+    beforeRaw,
+    afterRaw,
+    actualAfter,
+    includeSecrets
+  });
+}
+
+function buildPreviewsForTarget(target, config, apiKey, includeSecrets) {
+  const writeRule = getWriteRule(target.id);
+  const definitions = Array.isArray(writeRule.entries) ? writeRule.entries : [];
+  const displayContext = buildWriteRuleContext(target, config, apiKey, { includeSecrets: false });
+  const actualContext = buildWriteRuleContext(target, config, apiKey, { includeSecrets: true });
+  const previews = [];
+
+  for (const definition of definitions) {
+    const filePath = resolveRulePath(target, definition);
+    if (definition.format === "lobster") {
+      if (!exists(filePath)) {
+        const message = [
+          "# LobsterAI database was not found.",
+          `# Expected path: ${filePath}`,
+          "# Install or start LobsterAI once, then reload detection."
+        ].join("\n");
+        previews.push({
+          id: definition.id,
+          name: definition.name,
+          path: filePath,
+          type: definition.type || target.type,
+          exists: false,
+          stable: target.stable,
+          before: "",
+          after: message,
+          blocked: true,
+          reason: "LobsterAI database was not found.",
+          planOnly: false,
+          diff: message
+        });
+        continue;
+      }
+
+      try {
+        const current = readLobsterAppConfig(filePath);
+        const displayValue = executeLobsterRuleOperations(current.value || {}, definition.operations, config, apiKey ? maskSecret(apiKey) : "<API Key>");
+        const before = `${JSON.stringify(maskConfigObject(current.value || {}), null, 2)}\n`;
+        const after = `${JSON.stringify(maskConfigObject(displayValue), null, 2)}\n`;
+        const actualConfig = includeSecrets ? executeLobsterRuleOperations(current.value || {}, definition.operations, config, apiKey) : undefined;
+        previews.push({
+          id: definition.id,
+          name: definition.name,
+          path: filePath,
+          type: definition.type || target.type,
+          exists: true,
+          stable: target.stable,
+          before,
+          after,
+          actualConfig,
+          planOnly: false,
+          diff: lineDiff(before, after)
+        });
+      } catch (error) {
+        const message = [
+          "# LobsterAI SQLite preview failed.",
+          `# ${error.message || String(error)}`
+        ].join("\n");
+        previews.push({
+          id: definition.id,
+          name: definition.name,
+          path: filePath,
+          type: definition.type || target.type,
+          exists: true,
+          stable: target.stable,
+          before: "",
+          after: message,
+          blocked: true,
+          reason: error.message || String(error),
+          planOnly: false,
+          diff: message
+        });
+      }
+      continue;
+    }
+
+    const beforeRaw = readFileSafe(filePath);
+    try {
+      previews.push(buildRuleTextPreview(definition, target, beforeRaw, displayContext, actualContext, includeSecrets));
+    } catch (error) {
+      const message = [
+        `# ${definition.name} preview failed.`,
+        `# ${error.message || String(error)}`
+      ].join("\n");
+      previews.push({
+        id: definition.id,
+        name: definition.name,
+        path: filePath,
+        type: definition.type || target.type,
+        exists: exists(filePath),
+        stable: target.stable,
+        before: "",
+        after: message,
+        blocked: true,
+        reason: error.message || String(error),
+        planOnly: false,
+        diff: message
+      });
+    }
+  }
+
+  return previews;
 }
 
 function pythonCandidates() {
@@ -1139,6 +1833,11 @@ function runPythonJson(script, payload) {
       {
         input: JSON.stringify(payload),
         encoding: "utf8",
+        env: {
+          ...process.env,
+          PYTHONIOENCODING: "utf-8",
+          PYTHONUTF8: "1"
+        },
         timeout: 15000,
         windowsHide: true
       }
@@ -1281,6 +1980,25 @@ function writeLobsterConfig(config, apiKey, dbPath) {
   };
 }
 
+function writeLobsterConfigValue(dbPath, value) {
+  if (!exists(dbPath)) {
+    throw new Error(`LobsterAI database was not found: ${dbPath}`);
+  }
+  if (isLobsterRunning()) {
+    throw new Error("Close LobsterAI before writing its SQLite configuration.");
+  }
+  const backupPaths = backupLobsterDatabaseFiles(dbPath);
+  writeLobsterAppConfig(dbPath, value);
+  const verified = readLobsterAppConfig(dbPath);
+  if (!verified.value || JSON.stringify(verified.value) !== JSON.stringify(value)) {
+    throw new Error("LobsterAI SQLite write verification failed.");
+  }
+  return {
+    providerKey: LOBSTER_PROVIDER_KEY,
+    backupPaths
+  };
+}
+
 function readToolState() {
   if (!exists(TOOL_STATE_PATH)) {
     return { managedBy: APP_NAME, tools: {} };
@@ -1409,7 +2127,7 @@ function restoreToolOriginal(toolId, original) {
 
 function configForTool(payload, toolId) {
   const toolPayload = (payload.tools && payload.tools[toolId]) || {};
-  return sanitizeConfig({
+  const config = sanitizeConfig({
     baseUrl: toolPayload.baseUrl || payload.baseUrl,
     apiKey: payload.apiKey,
     model: toolPayload.model || payload.model,
@@ -1418,6 +2136,8 @@ function configForTool(payload, toolId) {
     providerName: "claw",
     supportsVision: toolPayload.supportsVision !== undefined ? toolPayload.supportsVision : payload.supportsVision
   });
+  config.toolVersion = String(toolPayload.toolVersion || payload.toolVersion || "").trim();
+  return config;
 }
 
 function resolveToolTargetPaths(toolId, payload, adapter) {
@@ -1488,7 +2208,13 @@ function applySingleTool(toolId, payload) {
       throw new Error(preview.reason || "This tool cannot be written.");
     }
     if (preview.type === "lobster-sqlite") {
-      results.push(writeLobsterConfig(config, apiKey, preview.path));
+      const result = writeLobsterConfigValue(preview.path, preview.actualConfig || {});
+      results.push({
+        path: preview.path,
+        backupPath: result.backupPaths[0] || null,
+        backupPaths: result.backupPaths,
+        providerKey: result.providerKey
+      });
     } else {
       results.push({ path: preview.path, backupPath: writeManagedFile(preview.path, preview.actualAfter) });
     }
@@ -1502,6 +2228,7 @@ function applySingleTool(toolId, payload) {
     baseUrl: config.baseUrl,
     model: config.model,
     apiType: config.apiType,
+    toolVersion: config.toolVersion,
     providerId: config.providerId,
     providerName: config.providerName,
     supportsVision: config.supportsVision
@@ -1557,6 +2284,7 @@ function saveToolSettings(payload) {
     baseUrl: config.baseUrl,
     model: config.model,
     apiType: config.apiType,
+    toolVersion: config.toolVersion,
     providerId: config.providerId,
     providerName: config.providerName,
     supportsVision: config.supportsVision
@@ -1728,95 +2456,7 @@ function buildPreview(payload, options = {}) {
 
   const previews = [];
   for (const target of targets) {
-    if (target.type === "codex-toml") {
-      const beforeRaw = readFileSafe(target.path);
-      const afterRaw = buildCodexConfig(beforeRaw, config);
-      previews.push(filePreview({
-        id: "codex",
-        name: "Codex config.toml",
-        type: target.type,
-        path: target.path,
-        stable: target.stable,
-        beforeRaw,
-        afterRaw,
-        includeSecrets
-      }));
-
-      const authPath = sanitizePath(target.authPath || CODEX_AUTH_PATH);
-      const authBeforeRaw = readFileSafe(authPath);
-      try {
-        const authBefore = exists(authPath) && authBeforeRaw.trim()
-          ? stringifyJsonObject(maskConfigObject(parseJsonObject(authBeforeRaw, "Codex auth.json")))
-          : "";
-        const displayKey = apiKey ? maskSecret(apiKey) : "<OPENAI_API_KEY>";
-        const authAfterPreviewRaw = buildCodexAuth(authBeforeRaw, displayKey);
-        const authAfter = stringifyJsonObject(maskConfigObject(parseJsonObject(authAfterPreviewRaw, "Codex auth.json")));
-        const authActualAfter = includeSecrets ? buildCodexAuth(authBeforeRaw, apiKey) : undefined;
-        previews.push({
-          id: "codex-auth",
-          name: "Codex auth.json",
-          path: authPath,
-          type: "codex-auth-json",
-          exists: exists(authPath),
-          stable: target.stable,
-          before: authBefore,
-          after: authAfter,
-          actualAfter: authActualAfter,
-          planOnly: false,
-          diff: lineDiff(authBefore, authAfter)
-        });
-      } catch (error) {
-        const message = [
-          "# Codex auth.json preview failed.",
-          `# ${error.message || String(error)}`
-        ].join("\n");
-        previews.push({
-          id: "codex-auth",
-          name: "Codex auth.json",
-          path: authPath,
-          type: "codex-auth-json",
-          exists: exists(authPath),
-          stable: target.stable,
-          before: "",
-          after: message,
-          blocked: true,
-          reason: error.message || String(error),
-          planOnly: false,
-          diff: message
-        });
-      }
-    } else if (target.type === "hermes-files") {
-      const configBefore = readFileSafe(target.path);
-      const displayKey = apiKey ? maskSecret(apiKey) : "";
-      const configAfter = buildHermesConfig(configBefore, config, displayKey);
-      const configActualAfter = includeSecrets ? buildHermesConfig(configBefore, config, apiKey) : undefined;
-      previews.push(filePreview({
-        id: "hermes-config",
-        name: "Hermes config.yaml",
-        type: "hermes-yaml",
-        path: target.path,
-        stable: target.stable,
-        beforeRaw: configBefore,
-        afterRaw: configAfter,
-        actualAfter: configActualAfter,
-        includeSecrets
-      }));
-    } else if (target.type === "lobster-sqlite") {
-      previews.push(buildLobsterPreview(target, config, apiKey, includeSecrets));
-    } else {
-      const beforeRaw = readFileSafe(target.path);
-      const afterRaw = buildGenericJson(target.id, config);
-      previews.push(filePreview({
-        id: target.id,
-        name: target.name,
-        type: target.type,
-        path: target.path,
-        stable: target.stable,
-        beforeRaw,
-        afterRaw,
-        includeSecrets
-      }));
-    }
+    previews.push(...buildPreviewsForTarget(target, config, apiKey, includeSecrets));
   }
 
   return previews;
@@ -1984,6 +2624,7 @@ function getStatus() {
   const codexSummary = extractCodexSummary(codexContent);
   const codexAuthSummary = extractCodexAuthSummary(readFileSafe(codexAuthPath));
   const toolState = readToolState();
+  const defaultBaseUrl = getDefaultProviderBaseUrl(toolState, codexSummary);
   const tools = {};
   for (const [id, adapter] of Object.entries(TOOL_ADAPTERS)) {
     const rawLastConfig = toolState.tools && toolState.tools[id] ? normalizeLastConfig(toolState.tools[id].lastConfig) : null;
@@ -1996,8 +2637,11 @@ function getStatus() {
       }
       : null;
     const fileStat = statSafe(configPath);
+    const versionInfo = detectToolVersion(id);
     tools[id] = {
       ...adapter,
+      ...versionInfo,
+      selectedToolVersion: lastConfig && lastConfig.toolVersion ? lastConfig.toolVersion : versionInfo.toolVersion,
       defaultPath: configPath,
       builtInDefaultPath: adapter.defaultPath,
       builtInAuthPath: adapter.authPath || null,
@@ -2017,7 +2661,7 @@ function getStatus() {
       node: process.version
     },
     defaults: {
-      baseUrl: codexSummary.baseUrl || "https://api.openai.com/v1",
+      baseUrl: defaultBaseUrl,
       model: codexSummary.model || "gpt-5.5",
       providerId: codexSummary.modelProvider || "agent_direct",
       providerName: "claw",
@@ -2109,6 +2753,27 @@ function saveLastRunSummary(config, results) {
 function readLastRunSummary() {
   if (!exists(LAST_RUN_PATH)) return null;
   return parseJsonObject(readFileSafe(LAST_RUN_PATH), "Last write summary");
+}
+
+function getDefaultProviderBaseUrl(toolState, codexSummary) {
+  const savedTools = toolState && toolState.tools && typeof toolState.tools === "object"
+    ? Object.values(toolState.tools)
+    : [];
+  for (const item of savedTools) {
+    const baseUrl = item && item.lastConfig && String(item.lastConfig.baseUrl || "").trim();
+    if (baseUrl && !isOpenAiDefaultBaseUrl(baseUrl)) return baseUrl;
+  }
+  try {
+    const lastRun = readLastRunSummary();
+    const lastRunBaseUrl = lastRun && String(lastRun.baseUrl || "").trim();
+    if (lastRunBaseUrl && !isOpenAiDefaultBaseUrl(lastRunBaseUrl)) return lastRunBaseUrl;
+  } catch {
+    // Ignore stale or malformed summaries; status should still load.
+  }
+  const codexBaseUrl = codexSummary && String(codexSummary.baseUrl || "").trim();
+  return codexBaseUrl && !isOpenAiDefaultBaseUrl(codexBaseUrl)
+    ? codexBaseUrl
+    : DEFAULT_PROVIDER_BASE_URL;
 }
 
 function getRestoreStatus() {
@@ -2230,7 +2895,7 @@ function applyConfig(payload) {
     }
 
     if (preview.type === "lobster-sqlite") {
-      const result = writeLobsterConfig(config, apiKey, preview.path);
+      const result = writeLobsterConfigValue(preview.path, preview.actualConfig || {});
       results.push({
         id: preview.id,
         name: preview.name,
@@ -2469,25 +3134,45 @@ function createServer() {
   });
 }
 
-function start(port) {
-  const server = createServer();
-  server.on("error", error => {
-    if (error.code === "EADDRINUSE" && port < DEFAULT_PORT + 20) {
-      start(port + 1);
-      return;
-    }
-    throw error;
-  });
-  server.listen(port, HOST, () => {
-    ensureDataDir();
-    const url = `http://${HOST}:${port}`;
-    fs.writeFileSync(
-      path.join(DATA_DIR, "server.json"),
-      JSON.stringify({ url, port, startedAt: new Date().toISOString() }, null, 2),
-      "utf8"
-    );
-    console.log(`${APP_NAME} is running at ${url}`);
+function start(port = DEFAULT_PORT) {
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.on("error", error => {
+      if (error.code === "EADDRINUSE" && port < DEFAULT_PORT + 20) {
+        resolve(start(port + 1));
+        return;
+      }
+      reject(error);
+    });
+    server.listen(port, HOST, () => {
+      ensureDataDir();
+      const address = server.address();
+      const actualPort = address && typeof address === "object" ? address.port : port;
+      const url = `http://${HOST}:${actualPort}`;
+      fs.writeFileSync(
+        path.join(DATA_DIR, "server.json"),
+        JSON.stringify({ url, port: actualPort, startedAt: new Date().toISOString() }, null, 2),
+        "utf8"
+      );
+      console.log(`${APP_NAME} is running at ${url}`);
+      resolve({ server, port: actualPort, url });
+    });
   });
 }
 
-start(DEFAULT_PORT);
+if (require.main === module) {
+  start(DEFAULT_PORT).catch(error => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  APP_NAME,
+  DEFAULT_PORT,
+  HOST,
+  DATA_DIR,
+  ROOT,
+  createServer,
+  start
+};

@@ -83,18 +83,21 @@ const DEFAULT_TOOL_SETTINGS = {
   codex: {
     configPath: "",
     authPath: "",
+    toolVersion: "",
     providerId: "agent_direct",
     providerName: "claw",
     supportsVision: true
   },
   hermes: {
     configPath: "",
+    toolVersion: "",
     providerId: "agent_direct",
     providerName: "claw",
     supportsVision: true
   },
   lobster: {
     configPath: "",
+    toolVersion: "",
     providerId: "agent_direct",
     providerName: "claw",
     supportsVision: true
@@ -113,6 +116,18 @@ let tokenSyncPromise = null;
 const toolDefaultPaths = {};
 const toolDefaultExtraPaths = {};
 const toolSettingsState = {};
+
+function isOpenAiDefaultProviderUrl(value) {
+  return String(value || "").trim().replace(/\/+$/, "") === "https://api.openai.com/v1";
+}
+
+function ensureDefaultProviderUrl() {
+  const current = String(apiUrlInput?.value || "").trim();
+  if (!current || isOpenAiDefaultProviderUrl(current)) {
+    apiUrlInput.value = DEFAULT_PROVIDER_URL;
+  }
+  return apiUrlInput.value.trim();
+}
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -349,9 +364,11 @@ function getToolSettings(tool) {
 function getToolConfig(tool) {
   const card = getCard(tool);
   const settings = getToolSettings(tool);
+  const versionSelect = card.querySelector(".tool-version-select");
   return {
     model: card.querySelector(".model-input").value.trim(),
     apiType: card.querySelector(".api-type-select").value,
+    toolVersion: String(versionSelect?.value || settings.toolVersion || "").trim(),
     providerId: settings.providerId,
     providerName: settings.providerName,
     supportsVision: settings.supportsVision,
@@ -393,12 +410,39 @@ function setToolMissing(card, missing) {
   if (badge) badge.hidden = !missing;
 }
 
+function setToolVersion(card, toolState, lastConfig = {}) {
+  const select = card.querySelector(".tool-version-select");
+  if (!select) return;
+  const selected = String(lastConfig?.toolVersion || toolState?.selectedToolVersion || "").trim();
+  const currentVersion = String(toolState?.toolVersion || "").trim();
+  const detected = toolState?.toolVersionSource ? currentVersion : "";
+  const options = Array.isArray(toolState?.toolVersions) ? toolState.toolVersions : [];
+  const normalizedOptions = Array.from(new Set([currentVersion, ...options].map(item => String(item || "").trim()).filter(Boolean)));
+  select.textContent = "";
+  if (!normalizedOptions.length) {
+    const emptyOption = document.createElement("option");
+    emptyOption.value = "";
+    emptyOption.textContent = "未检测到";
+    select.appendChild(emptyOption);
+  }
+  normalizedOptions.forEach(value => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  });
+  const fallbackValue = currentVersion || normalizedOptions[0] || "";
+  select.value = normalizedOptions.includes(selected) ? selected : fallbackValue;
+  select.title = detected ? `检测到：${detected}` : "未检测到版本";
+}
+
 function applyToolSettings(tool, nextSettings = {}) {
   toolSettingsState[tool] = {
     ...cloneToolSettings(tool),
     ...nextSettings,
     configPath: String(nextSettings.configPath || DEFAULT_TOOL_SETTINGS[tool].configPath || "").trim(),
     authPath: String(nextSettings.authPath || DEFAULT_TOOL_SETTINGS[tool].authPath || "").trim(),
+    toolVersion: String(nextSettings.toolVersion || DEFAULT_TOOL_SETTINGS[tool].toolVersion || "").trim(),
     providerId: String(nextSettings.providerId || DEFAULT_TOOL_SETTINGS[tool].providerId).trim() || DEFAULT_TOOL_SETTINGS[tool].providerId,
     providerName: "claw",
     supportsVision: nextSettings.supportsVision !== undefined
@@ -440,6 +484,7 @@ async function saveToolSettingsFromDialog() {
   applyToolSettings(tool, {
     configPath: toolSettingsConfigPath.value,
     authPath: tool === "codex" ? toolSettingsExtraPath.value : "",
+    toolVersion: getToolConfig(tool).toolVersion,
     providerName: "claw"
   });
   await api("/api/tool-settings", {
@@ -657,6 +702,7 @@ async function loadConfigStatus() {
     const status = await api("/api/status");
     statusLoaded = true;
     apiUrlInput.value = status.defaults.baseUrl || DEFAULT_PROVIDER_URL;
+    ensureDefaultProviderUrl();
     const defaultModel = status.defaults.model || "gpt-5.5";
     const defaultApiType = status.defaults.apiType || "openai-responses";
 
@@ -669,6 +715,7 @@ async function loadConfigStatus() {
       applyToolSettings(tool, {
         configPath: lastConfig.configPath || toolState.defaultPath || "",
         authPath: lastConfig.authPath || toolState.authPath || "",
+        toolVersion: lastConfig.toolVersion || toolState.toolVersion || "",
         providerId: lastConfig.providerId,
         supportsVision: lastConfig.supportsVision
       });
@@ -678,6 +725,7 @@ async function loadConfigStatus() {
         lastConfig.apiType || defaultApiType;
       card.querySelector(".tool-toggle").checked = Boolean(toolState && toolState.managedEnabled);
       setToolMissing(card, !Boolean(toolState && toolState.exists));
+      setToolVersion(card, toolState, lastConfig);
     });
     renderProviderSummary();
   } catch (error) {
@@ -849,6 +897,7 @@ async function refreshTokenList() {
 function applyConfigApiKey(key, { reveal = true, sync = true } = {}) {
   const normalizedKey = withOpenAiKeyPrefix(key);
   if (!normalizedKey) return "";
+  ensureDefaultProviderUrl();
   apiKeyInput.value = normalizedKey;
   renderProviderSummary();
   if (reveal) showRevealedKey(normalizedKey);
@@ -925,7 +974,7 @@ function renderBuytokenProducts(products) {
     button.dataset.productId = product.id;
 
     const value = document.createElement("strong");
-    value.textContent = `${product.value || "--"} 元`;
+    value.textContent = `${product.value || "--"}￥`;
 
     const price = document.createElement("span");
     price.textContent = product.price ? `¥${Number(product.price).toFixed(2)}` : product.name;
@@ -1206,6 +1255,7 @@ toolCards.forEach(card => {
   const tool = card.dataset.tool;
   const toggle = card.querySelector(".tool-toggle");
   toggle.addEventListener("change", () => setToolEnabled(tool, toggle.checked));
+  card.querySelector(".tool-version-select").addEventListener("change", () => scheduleToolSync(tool));
   card.querySelector(".model-input").addEventListener("input", () => scheduleToolSync(tool));
   card.querySelector(".api-type-select").addEventListener("change", () => scheduleToolSync(tool));
 });

@@ -18,6 +18,33 @@ npm start
 http://127.0.0.1:4788
 ```
 
+## Electron 桌面版
+
+开发模式启动桌面版:
+
+```powershell
+npm run desktop
+```
+
+生成可分发的 Windows 安装包:
+
+```powershell
+npm run dist
+```
+
+产物位置:
+
+- 安装包: `dist/agent_conf-Setup-0.1.0.exe`
+- 解包版: `dist/win-unpacked/agent_conf.exe`
+
+桌面版启用了单实例锁；重复打开时会只唤醒已有窗口，不会再启动第二个应用实例。
+
+桌面版运行数据默认写到:
+
+```text
+%APPDATA%/agent_conf/data
+```
+
 ## 当前模式
 
 - 直写模式，不做本地中转

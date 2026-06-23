@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "tools": {
+    "codex": {
+      "entries": [
+        {
+          "id": "codex",
+          "name": "Codex config.toml",
+          "type": "codex-toml",
+          "format": "text",
+          "pathKey": "path",
+          "operations": [
+            {
+              "op": "toml.removeTables",
+              "providerId": "${providerId}"
+            },
+            {
+              "op": "toml.upsertRoot",
+              "values": {
+                "model": "${model}",
+                "model_provider": "${providerId}"
+              }
+            },
+            {
+              "op": "text.appendBlock",
+              "blockLines": [
+                "# Managed by ${appName}. Direct write mode: real provider URL, API key from auth.json.",
+                "[model_providers.${providerId}]",
+                "name = \"${providerName}\"",
+                "base_url = \"${baseUrl}\"",
+                "wire_api = \"${codexWireApi}\"",
+                "requires_openai_auth = true"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "codex-auth",
+          "name": "Codex auth.json",
+          "type": "codex-auth-json",
+          "format": "text",
+          "displayMode": "json-masked",
+          "pathKey": "authPath",
+          "operations": [
+            {
+              "op": "json.set",
+              "path": "OPENAI_API_KEY",
+              "value": "${openaiAuthKey}"
+            }
+          ]
+        }
+      ]
+    },
+    "hermes": {
+      "entries": [
+        {
+          "id": "hermes-config",
+          "name": "Hermes config.yaml",
+          "type": "hermes-yaml",
+          "format": "text",
+          "pathKey": "path",
+          "operations": [
+            {
+              "op": "yaml.removeTopLevelBlock",
+              "key": "model"
+            },
+            {
+              "op": "yaml.removeTopLevelBlock",
+              "key": "providers"
+            },
+            {
+              "op": "text.appendBlock",
+              "blockLines": [
+                "# Managed by ${appName}. Direct custom endpoint.",
+                "model:",
+                "  default: \"${model}\"",
+                "  provider: custom",
+                "  base_url: \"${baseUrl}\"",
+                "  supports_vision: ${supportsVision}",
+                "  api_key: \"${apiKey}\""
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "lobster": {
+      "entries": [
+        {
+          "id": "lobster",
+          "name": "LobsterAI",
+          "type": "lobster-sqlite",
+          "format": "lobster",
+          "pathKey": "path",
+          "operations": [
+            {
+              "op": "lobster.appConfig"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

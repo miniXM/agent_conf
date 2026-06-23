@@ -1,6 +1,7 @@
 node_modules/
 .agent-conf/
 .research/
+dist/
 
 *.log
 npm-debug.log*

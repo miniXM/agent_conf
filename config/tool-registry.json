@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "tools": {
+    "codex": {
+      "writerVersion": "codex-config-v1",
+      "versions": ["0.137.0"],
+      "versionSources": [
+        {
+          "type": "file",
+          "path": "${APPDATA}\\npm\\node_modules\\@openai\\codex\\package.json",
+          "extract": {
+            "pattern": "\"version\"\\s*:\\s*\"([^\"]+)\"",
+            "flags": "m",
+            "group": 1
+          }
+        },
+        {
+          "type": "command",
+          "command": "codex",
+          "args": ["--version"],
+          "timeoutMs": 1200,
+          "extract": {
+            "pattern": "codex-cli\\s+([^\\s]+)",
+            "flags": "m",
+            "group": 1
+          }
+        }
+      ]
+    },
+    "hermes": {
+      "writerVersion": "hermes-config-v1",
+      "versions": ["0.15.1"],
+      "versionSources": [
+        {
+          "type": "file",
+          "path": "${LOCALAPPDATA}\\hermes\\hermes-agent\\hermes_agent.egg-info\\PKG-INFO",
+          "extract": {
+            "pattern": "^Version:\\s*([^\\r\\n]+)$",
+            "flags": "m",
+            "group": 1
+          }
+        },
+        {
+          "type": "command",
+          "command": "hermes",
+          "args": ["--version"],
+          "timeoutMs": 1200,
+          "extract": {
+            "pattern": "Hermes Agent\\s+v?([0-9]+(?:\\.[0-9]+)+(?:\\.[0-9]+)?)",
+            "flags": "i",
+            "group": 1
+          }
+        }
+      ]
+    },
+    "lobster": {
+      "writerVersion": "lobster-sqlite-v1",
+      "versions": ["2026.6.15.0"],
+      "versionSources": [
+        {
+          "type": "file-version",
+          "path": "${LOCALAPPDATA}\\Programs\\LobsterAI\\LobsterAI.exe"
+        }
+      ]
+    }
+  }
+}

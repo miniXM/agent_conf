@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "description": "Local one-click configurator for OpenAI-compatible agent tools.",
-  "main": "server.js",
+  "main": "electron/main.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js"
+    "check": "node --check server.js && node --check electron/main.js",
+    "desktop": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis"
   },
   "engines": {
     "node": ">=20"
@@ -14,5 +17,38 @@
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "electron": "^37.1.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.agentconf.desktop",
+    "productName": "agent_conf",
+    "asar": true,
+    "files": [
+      "assets/**/*",
+      "config/**/*",
+      "public/**/*",
+      "dmapi-auth-service.cjs",
+      "electron/**/*",
+      "server.js",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "assets/app-icon.ico",
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
