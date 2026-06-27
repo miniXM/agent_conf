@@ -61,7 +61,7 @@ npm run dist
 - 学习页支持读取远程 `cards.json` 卡片列表
 - 每张卡片包含标题、简介、封面图地址、单个 HTML 文章地址
 - 点击文章时会把 HTML 缓存到本地，之后可离线打开
-- 未配置远程地址时，默认读取 [public/learn-sample/catalog.json](public/learn-sample/catalog.json) 示例内容
+- 未配置远程地址时，默认读取 Gitee raw 列表：https://gitee.com/miniXM/agent_conf/raw/master/public/learn-sample/catalog.json
 
 示例 `cards.json`:
 

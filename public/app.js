@@ -1207,9 +1207,31 @@ passwordVisibleToggle?.addEventListener("change", renderStoredPassword);
 
 document.querySelectorAll(".copy-button").forEach(button => {
   button.addEventListener("click", async () => {
-    const text = document.querySelector(`#${button.dataset.copyTarget}`)?.textContent || "";
-    if (text && text !== "--") {
-      await navigator.clipboard.writeText(text);
+    const target = document.querySelector(`#${button.dataset.copyTarget}`);
+    const text = String(target?.value ?? target?.textContent ?? "").trim();
+    const label = button.dataset.copyLabel || "内容";
+    if (!text || text === "--" || text === "未设置") {
+      showToast(`${label} 未设置`, "error");
+      return;
+    }
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+      }
+      showToast(`${label} 已复制`, "success");
+    } catch (error) {
+      showToast(`${label} 复制失败`, "error");
+      console.error(error);
     }
   });
 });

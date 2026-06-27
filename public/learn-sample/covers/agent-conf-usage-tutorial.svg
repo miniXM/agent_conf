@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" role="img" aria-label="agent_conf 软件使用教程">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#F6F9FF"/>
+      <stop offset="1" stop-color="#FFF3EF"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#5B86EA"/>
+      <stop offset="1" stop-color="#EF5545"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#17243A" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+  <rect width="960" height="560" rx="44" fill="url(#bg)"/>
+  <circle cx="824" cy="102" r="72" fill="#FFE0D9"/>
+  <circle cx="125" cy="458" r="92" fill="#E7F0FF"/>
+  <g filter="url(#shadow)">
+    <rect x="150" y="98" width="660" height="364" rx="30" fill="#FFFFFF" stroke="#D8E2F1"/>
+    <rect x="150" y="98" width="660" height="66" rx="30" fill="#F9FBFF"/>
+    <rect x="150" y="137" width="660" height="27" fill="#F9FBFF"/>
+    <circle cx="198" cy="132" r="10" fill="#EF5545"/>
+    <circle cx="230" cy="132" r="10" fill="#F6C453"/>
+    <circle cx="262" cy="132" r="10" fill="#28B487"/>
+    <rect x="202" y="210" width="556" height="66" rx="18" fill="#F8FBFF" stroke="#D8E2F1"/>
+    <rect x="232" y="232" width="170" height="16" rx="8" fill="#8390A7"/>
+    <rect x="512" y="232" width="168" height="16" rx="8" fill="#17243A"/>
+    <rect x="202" y="306" width="160" height="112" rx="20" fill="#EDF3FF" stroke="#CFE0FF"/>
+    <rect x="400" y="306" width="160" height="112" rx="20" fill="#EAF8F5" stroke="#BFE6DC"/>
+    <rect x="598" y="306" width="160" height="112" rx="20" fill="#FFF1EE" stroke="#FFD0C7"/>
+    <rect x="226" y="332" width="72" height="14" rx="7" fill="#17243A"/>
+    <rect x="424" y="332" width="82" height="14" rx="7" fill="#17243A"/>
+    <rect x="622" y="332" width="96" height="14" rx="7" fill="#17243A"/>
+    <rect x="226" y="371" width="112" height="12" rx="6" fill="#8A98AE"/>
+    <rect x="424" y="371" width="112" height="12" rx="6" fill="#8A98AE"/>
+    <rect x="622" y="371" width="112" height="12" rx="6" fill="#8A98AE"/>
+    <rect x="306" y="396" width="34" height="18" rx="9" fill="#5B86EA"/>
+    <rect x="504" y="396" width="34" height="18" rx="9" fill="#5B86EA"/>
+    <rect x="702" y="396" width="34" height="18" rx="9" fill="#5B86EA"/>
+  </g>
+  <rect x="88" y="74" width="190" height="42" rx="21" fill="#FFFFFF"/>
+  <text x="112" y="101" fill="#EF5545" font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800">软件使用教学</text>
+  <text x="88" y="510" fill="#17243A" font-family="Segoe UI, Microsoft YaHei, Arial, sans-serif" font-size="38" font-weight="800">agent_conf 使用教程</text>
+  <rect x="88" y="524" width="256" height="8" rx="4" fill="url(#bar)"/>
+</svg>

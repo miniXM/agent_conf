@@ -77,12 +77,28 @@
                 <label>
                   <span>API 地址</span>
                   <input id="apiUrl" type="hidden">
-                  <strong class="api-display-value" id="apiUrlDisplay">未设置</strong>
+                  <div class="api-display-row">
+                    <strong class="api-display-value" id="apiUrlDisplay">未设置</strong>
+                    <button class="icon-button copy-button" type="button" data-copy-target="apiUrl" data-copy-label="API 地址" aria-label="复制 API 地址" title="复制 API 地址">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M9 9h10v10H9z"></path>
+                        <path d="M5 15H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v1"></path>
+                      </svg>
+                    </button>
+                  </div>
                 </label>
                 <label>
                   <span>API Key</span>
                   <input id="apiKey" type="hidden">
-                  <strong class="api-display-value" id="apiKeyDisplay">未设置</strong>
+                  <div class="api-display-row">
+                    <strong class="api-display-value" id="apiKeyDisplay">未设置</strong>
+                    <button class="icon-button copy-button" type="button" data-copy-target="apiKey" data-copy-label="API Key" aria-label="复制 API Key" title="复制 API Key">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M9 9h10v10H9z"></path>
+                        <path d="M5 15H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v1"></path>
+                      </svg>
+                    </button>
+                  </div>
                 </label>
               </div>
             </article>
@@ -397,7 +413,7 @@
         <div class="settings-head">
           <div>
             <h2 id="learnSourceTitle">学习列表地址</h2>
-            <p>填入 Gitee raw 的 cards.json 地址，留空时使用本地示例。</p>
+            <p>填入 Gitee raw 的 cards.json 地址，留空时使用默认 Gitee 列表。</p>
           </div>
           <button class="icon-button dialog-close-button" id="closeLearnSourceBtn" type="button" aria-label="关闭学习列表设置" title="关闭">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -410,12 +426,12 @@
         <form class="settings-form" id="learnSourceForm">
           <label class="settings-field">
             <span>cards.json 地址</span>
-            <input id="learnCatalogUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://gitee.com/你的账号/仓库/raw/master/cards.json">
+            <input id="learnCatalogUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://gitee.com/miniXM/agent_conf/raw/master/public/learn-sample/catalog.json">
             <small>卡片列表里写标题、封面和单 HTML 地址。</small>
           </label>
 
           <div class="settings-actions">
-            <button class="secondary-button" id="useSampleLearnBtn" type="button">使用示例</button>
+            <button class="secondary-button" id="useSampleLearnBtn" type="button">使用默认</button>
             <button class="submit-button" type="submit">保存并刷新</button>
           </div>
         </form>

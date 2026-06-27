@@ -26,6 +26,7 @@ const LEARN_CATALOG_CACHE_PATH = path.join(LEARN_DIR, "catalog-cache.json");
 const LEARN_ARTICLES_DIR = path.join(LEARN_DIR, "articles");
 const LEARN_COVERS_DIR = path.join(LEARN_DIR, "covers");
 const LEARN_SAMPLE_CATALOG_PATH = path.join(PUBLIC_DIR, "learn-sample", "catalog.json");
+const DEFAULT_LEARN_CATALOG_URL = "https://gitee.com/miniXM/agent_conf/raw/master/public/learn-sample/catalog.json";
 const LAST_RUN_PATH = path.join(DATA_DIR, "last-direct-write.json");
 const TOOL_STATE_PATH = path.join(DATA_DIR, "tool-state.json");
 const USERCONF_PATH = path.join(DATA_DIR, "userconf.json");
@@ -400,9 +401,9 @@ function getLearnSourceTarget() {
     };
   }
   return {
-    catalogUrl: "/learn-sample/catalog.json",
+    catalogUrl: DEFAULT_LEARN_CATALOG_URL,
     configured: false,
-    usingSample: true
+    usingSample: false
   };
 }
 
