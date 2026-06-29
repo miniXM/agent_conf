@@ -21,6 +21,7 @@ jobs:
     runs-on: macos-15
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      DEBUG: electron-builder
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,6 +42,7 @@ jobs:
         run: npm run dist:mac
 
       - name: Show dist contents
+        if: always()
         run: ls -R dist
 
       - name: Upload macOS artifacts
@@ -53,3 +55,15 @@ jobs:
             dist/**/*.app
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload electron-builder logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build-logs-${{ github.ref_name }}-${{ github.sha }}
+          path: |
+            ~/Library/Logs/electron-builder/**/*.log
+            ~/Library/Caches/electron-builder/**/*.log
+            dist/**/*.log
+          if-no-files-found: ignore
+          retention-days: 7
