@@ -50,9 +50,8 @@ jobs:
         with:
           name: macos-build-${{ github.ref_name }}-${{ github.sha }}
           path: |
-            dist/**/*.dmg
             dist/**/*.zip
-            dist/**/*.app
+            dist/**/*.blockmap
           if-no-files-found: error
           retention-days: 14
 

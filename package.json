@@ -12,9 +12,9 @@
     "pack:mac": "electron-builder --mac dir --arm64 -c.mac.identity=null",
     "pack:mac:signed": "electron-builder --mac dir --arm64",
     "dist": "electron-builder --win nsis",
-    "dist:mac": "electron-builder --mac zip --arm64 -c.mac.identity=null",
-    "dist:mac:dmg": "electron-builder --mac dmg zip --arm64 -c.mac.identity=null",
-    "dist:mac:signed": "electron-builder --mac dmg zip --arm64"
+    "dist:mac": "electron-builder --mac zip --arm64 -c.mac.identity=null --publish never",
+    "dist:mac:dmg": "electron-builder --mac dmg zip --arm64 -c.mac.identity=null --publish never",
+    "dist:mac:signed": "electron-builder --mac dmg zip --arm64 --publish never"
   },
   "engines": {
     "node": ">=20"
