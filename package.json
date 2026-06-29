@@ -9,10 +9,10 @@
     "check": "node --check server.js && node --check electron/main.js",
     "desktop": "electron .",
     "pack": "electron-builder --dir",
-    "pack:mac": "electron-builder --mac dir --arm64 -c.mac.identity=null -c.mac.hardenedRuntime=false",
+    "pack:mac": "electron-builder --mac dir --arm64 -c.mac.identity=null",
     "pack:mac:signed": "electron-builder --mac dir --arm64",
     "dist": "electron-builder --win nsis",
-    "dist:mac": "electron-builder --mac dmg zip --arm64 -c.mac.identity=null -c.mac.hardenedRuntime=false",
+    "dist:mac": "electron-builder --mac dmg zip --arm64 -c.mac.identity=null",
     "dist:mac:signed": "electron-builder --mac dmg zip --arm64"
   },
   "engines": {
