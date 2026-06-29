@@ -1,0 +1,70 @@
+name: Build Windows Artifacts
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    name: Build Windows installer
+    runs-on: windows-latest
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      DEBUG: electron-builder
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate source
+        run: npm run check
+
+      - name: Build Windows artifacts
+        run: npm run dist:win
+
+      - name: Show dist contents
+        if: always()
+        shell: pwsh
+        run: Get-ChildItem -Path dist -Recurse | Select-Object FullName, Length, LastWriteTime
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build-${{ github.ref_name }}-${{ github.sha }}
+          path: |
+            dist/**/*.exe
+            dist/**/*.blockmap
+            dist/**/*.yml
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload electron-builder logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build-logs-${{ github.ref_name }}-${{ github.sha }}
+          path: |
+            ~/AppData/Local/electron-builder/**/*.log
+            ~/AppData/Roaming/electron-builder/**/*.log
+            dist/**/*.log
+          if-no-files-found: ignore
+          retention-days: 7
