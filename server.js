@@ -17,6 +17,26 @@ function resolveDataDir() {
   return path.join(ROOT, ".agent-conf");
 }
 
+function resolveAppDataDir() {
+  if (process.platform === "win32") {
+    return process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
+  }
+  if (process.platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Application Support");
+  }
+  return process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config");
+}
+
+function resolveLocalAppDataDir() {
+  if (process.platform === "win32") {
+    return process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
+  }
+  if (process.platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Application Support");
+  }
+  return process.env.XDG_DATA_HOME || path.join(os.homedir(), ".local", "share");
+}
+
 const PUBLIC_DIR = path.join(ROOT, "public");
 const ASSETS_DIR = path.join(ROOT, "assets");
 const DATA_DIR = resolveDataDir();
@@ -31,11 +51,13 @@ const LAST_RUN_PATH = path.join(DATA_DIR, "last-direct-write.json");
 const TOOL_STATE_PATH = path.join(DATA_DIR, "tool-state.json");
 const USERCONF_PATH = path.join(DATA_DIR, "userconf.json");
 const LEGACY_USERCONF_PATH = path.join(ROOT, "userconf.json");
-const APPDATA = process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming");
+const APPDATA = resolveAppDataDir();
+const LOCALAPPDATA = resolveLocalAppDataDir();
 const CODEX_HOME = process.env.CODEX_HOME || path.join(os.homedir(), ".codex");
 const CODEX_AUTH_PATH = path.join(CODEX_HOME, "auth.json");
 const HERMES_HOME = process.env.HERMES_HOME || path.join(os.homedir(), ".hermes");
 const HERMES_ENV_PATH = path.join(HERMES_HOME, ".env");
+const LOBSTER_DB_PATH = process.env.LOBSTER_DB_PATH || path.join(APPDATA, "LobsterAI", "lobsterai.sqlite");
 const LOBSTER_PROVIDER_KEY = "custom_0";
 const DEFAULT_PROVIDER_BASE_URL = "https://token.minapp.xin/v1";
 const BUYTOKEN_BASE_URL = "https://buytoken.clawos.cc";
@@ -79,7 +101,7 @@ const TOOL_ADAPTERS = {
     id: "lobster",
     name: "LobsterAI",
     type: "lobster-sqlite",
-    defaultPath: path.join(APPDATA, "LobsterAI", "lobsterai.sqlite"),
+    defaultPath: LOBSTER_DB_PATH,
     stable: false
   },
   hermes: {
@@ -1117,9 +1139,15 @@ function expandRegistryTemplate(value) {
     if (key === "CODEX_HOME") return CODEX_HOME;
     if (key === "HERMES_HOME") return HERMES_HOME;
     if (key === "APPDATA") return APPDATA;
-    if (key === "LOCALAPPDATA") return process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
+    if (key === "LOCALAPPDATA") return LOCALAPPDATA;
     return process.env[key] || "";
   });
+}
+
+function normalizeRegistryPath(value) {
+  const expanded = expandRegistryTemplate(value);
+  if (process.platform === "win32") return expanded;
+  return expanded.replace(/\\/g, "/");
 }
 
 function normalizeToolRegistry(registry) {
@@ -1245,7 +1273,7 @@ function detectVersionFromSource(source) {
     };
   }
   if (type === "file") {
-    const filePath = sanitizePath(expandRegistryTemplate(source.path));
+    const filePath = sanitizePath(normalizeRegistryPath(source.path));
     const raw = readFileSafe(filePath);
     const version = extractVersionText(raw, source.extract);
     if (!version) return null;
@@ -1257,7 +1285,7 @@ function detectVersionFromSource(source) {
     };
   }
   if (type === "file-version") {
-    const filePath = sanitizePath(expandRegistryTemplate(source.path));
+    const filePath = sanitizePath(normalizeRegistryPath(source.path));
     const raw = readWindowsFileVersion(filePath);
     const version = extractVersionText(raw, source.extract);
     if (!version) return null;
@@ -2939,12 +2967,15 @@ function applyConfig(payload) {
 
 function openPath(targetPath) {
   const resolved = sanitizePath(targetPath);
+  const targetExists = exists(resolved);
+  const targetStat = targetExists ? statSafe(resolved) : null;
   if (process.platform === "win32") {
-    if (exists(resolved) && statSafe(resolved).isFile()) {
+    if (targetStat && targetStat.isFile()) {
       spawn("explorer.exe", ["/select,", resolved], { detached: true, stdio: "ignore", windowsHide: true }).unref();
     } else {
-      fs.mkdirSync(exists(resolved) ? resolved : path.dirname(resolved), { recursive: true });
-      spawn("explorer.exe", [exists(resolved) ? resolved : path.dirname(resolved)], {
+      const dirPath = targetStat && targetStat.isDirectory() ? resolved : path.dirname(resolved);
+      fs.mkdirSync(dirPath, { recursive: true });
+      spawn("explorer.exe", [dirPath], {
         detached: true,
         stdio: "ignore",
         windowsHide: true
@@ -2952,7 +2983,20 @@ function openPath(targetPath) {
     }
     return { ok: true };
   }
-  return { ok: false, message: "Open path is currently implemented for Windows only." };
+  if (process.platform === "darwin") {
+    if (targetStat && targetStat.isFile()) {
+      spawn("open", ["-R", resolved], { detached: true, stdio: "ignore" }).unref();
+    } else {
+      const dirPath = targetStat && targetStat.isDirectory() ? resolved : path.dirname(resolved);
+      fs.mkdirSync(dirPath, { recursive: true });
+      spawn("open", [dirPath], { detached: true, stdio: "ignore" }).unref();
+    }
+    return { ok: true };
+  }
+  const dirPath = targetStat && targetStat.isDirectory() ? resolved : (targetStat && targetStat.isFile() ? path.dirname(resolved) : path.dirname(resolved));
+  fs.mkdirSync(dirPath, { recursive: true });
+  spawn("xdg-open", [dirPath], { detached: true, stdio: "ignore" }).unref();
+  return { ok: true };
 }
 
 async function routeApi(req, res, current) {

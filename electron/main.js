@@ -22,6 +22,10 @@ function focusMainWindow() {
 }
 
 function createMainWindow(url) {
+  const windowIcon = process.platform === "win32"
+    ? path.join(__dirname, "..", "assets", "app-icon.ico")
+    : path.join(__dirname, "..", "assets", "app-icon-mac.png");
+
   mainWindow = new BrowserWindow({
     width: 1360,
     height: 880,
@@ -31,7 +35,7 @@ function createMainWindow(url) {
     autoHideMenuBar: true,
     backgroundColor: "#0f172a",
     title: serverModule.APP_NAME,
-    icon: path.join(__dirname, "..", "assets", "app-icon.ico"),
+    icon: windowIcon,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,

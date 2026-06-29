@@ -9,7 +9,11 @@
     "check": "node --check server.js && node --check electron/main.js",
     "desktop": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --win nsis"
+    "pack:mac": "electron-builder --mac dir --arm64 -c.mac.identity=null -c.mac.hardenedRuntime=false",
+    "pack:mac:signed": "electron-builder --mac dir --arm64",
+    "dist": "electron-builder --win nsis",
+    "dist:mac": "electron-builder --mac dmg zip --arm64 -c.mac.identity=null -c.mac.hardenedRuntime=false",
+    "dist:mac:signed": "electron-builder --mac dmg zip --arm64"
   },
   "engines": {
     "node": ">=20"
@@ -44,6 +48,28 @@
         "nsis"
       ],
       "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "mac": {
+      "icon": "assets/app-icon-mac.png",
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "artifactName": "${productName}-${version}-mac-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,

@@ -26,16 +26,31 @@ http://127.0.0.1:4788
 npm run desktop
 ```
 
-生成可分发的 Windows 安装包:
+生成 Windows 安装包:
 
 ```powershell
 npm run dist
 ```
 
-产物位置:
+生成 Mac mini / macOS Apple Silicon 部署包:
+
+```bash
+npm run dist:mac
+```
+
+以上 macOS 打包命令建议直接在目标 Mac mini 或其他 macOS 机器上执行。
+
+仅打包未签名目录版:
+
+```bash
+npm run pack:mac
+```
+
+常见产物位置:
 
 - 安装包: `dist/agent_conf-Setup-0.1.0.exe`
 - 解包版: `dist/win-unpacked/agent_conf.exe`
+- macOS 产物: `dist/` 下的 `.dmg`、`.zip` 和 `.app`
 
 桌面版启用了单实例锁；重复打开时会只唤醒已有窗口，不会再启动第二个应用实例。
 
@@ -45,6 +60,14 @@ npm run dist
 %APPDATA%/agent_conf/data
 ```
 
+macOS 桌面版运行数据默认写到:
+
+```text
+~/Library/Application Support/agent_conf/data
+```
+
+Mac mini 部署步骤见 [docs/mac-mini-deploy.md](docs/mac-mini-deploy.md)。
+
 ## 当前模式
 
 - 直写模式，不做本地中转
@@ -52,6 +75,7 @@ npm run dist
 - Codex：写 `~/.codex/config.toml` 和 `~/.codex/auth.json`
 - Hermes：写 `~/.hermes/config.yaml`，API Key 写 `~/.hermes/.env`
 - LobsterAI：写 `%APPDATA%/LobsterAI/lobsterai.sqlite` 的 `kv.app_config`
+- macOS 下 LobsterAI 默认尝试 `~/Library/Application Support/LobsterAI/lobsterai.sqlite`；如果实际路径不同，可在工具设置里改写入路径，或设置 `LOBSTER_DB_PATH`
 - 写入前展示预览，执行时先备份旧配置，再替换为新配置
 - 支持把上次写入前的备份恢复回原配置
 - 预览、诊断、日志都不显示 API Key 明文
