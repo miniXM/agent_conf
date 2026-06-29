@@ -39,7 +39,7 @@ jobs:
         run: npm run check
 
       - name: Build macOS artifacts
-        run: npm run dist:mac
+        run: npm run dist:mac:dmg
 
       - name: Show dist contents
         if: always()
@@ -50,6 +50,7 @@ jobs:
         with:
           name: macos-build-${{ github.ref_name }}-${{ github.sha }}
           path: |
+            dist/**/*.dmg
             dist/**/*.zip
             dist/**/*.blockmap
           if-no-files-found: error
