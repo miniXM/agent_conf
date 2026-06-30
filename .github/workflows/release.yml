@@ -87,6 +87,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
@@ -100,6 +103,7 @@ jobs:
       - name: Create or update GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
           TAG="${GITHUB_REF_NAME}"
           shopt -s nullglob
@@ -110,8 +114,8 @@ jobs:
             exit 1
           fi
 
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "${files[@]}" --clobber
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --repo "$REPO" --clobber
           else
-            gh release create "$TAG" "${files[@]}" --generate-notes --latest
+            gh release create "$TAG" "${files[@]}" --repo "$REPO" --generate-notes --latest
           fi
